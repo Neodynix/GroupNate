@@ -1,3 +1,11 @@
+/* --- Gatekeeper / Auth Wall --- */
+.gatekeeper-overlay {
+    background: rgba(10, 15, 30, 0.85); /* Slightly darker to hide dashboard entirely */
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    z-index: 9999;
+}
+
 /* --- Dashboard Main Container --- */
 .dashboard-container {
     max-width: 1400px;
@@ -11,10 +19,7 @@
     animation: fadeInView 0.4s ease forwards;
 }
 
-.dashboard-view.active {
-    display: block;
-}
-
+.dashboard-view.active { display: block; }
 .dashboard-view.active.dashboard-grid {
     display: grid;
     grid-template-columns: 1fr;
@@ -50,6 +55,7 @@
     cursor: pointer;
     box-shadow: 0 4px 15px rgba(233, 69, 96, 0.4);
     transition: 0.3s;
+    text-transform: uppercase;
 }
 .user-circle:hover { transform: scale(1.05); }
 
@@ -78,7 +84,7 @@
 }
 
 .profile-name { font-weight: bold; font-size: 1.1rem; }
-.profile-email { font-size: 0.85rem; color: var(--text-muted); }
+.profile-email { font-size: 0.85rem; color: var(--text-muted); word-break: break-all; }
 .profile-divider { border: 0; height: 1px; background: var(--glass-border); margin: 10px 0; }
 .profile-stat { font-size: 0.9rem; display: flex; justify-content: space-between; }
 .profile-stat span { font-weight: bold; color: var(--wa-color); }
@@ -142,7 +148,6 @@ textarea.glass-input {
 .ledger-info h4 { margin-bottom: 5px; font-size: 1.1rem; }
 .ledger-info p { font-size: 0.8rem; color: var(--text-muted); }
 
-/* Ledger Action Buttons (Edit & Delete) */
 .ledger-actions {
     display: flex;
     gap: 10px;
@@ -181,6 +186,7 @@ textarea.glass-input {
 .status-live { background: rgba(37, 211, 102, 0.2); color: #25D366; border: 1px solid #25D366; }
 .status-pending { background: rgba(241, 196, 15, 0.2); color: #f1c40f; border: 1px solid #f1c40f; }
 .status-expired { background: rgba(255, 71, 87, 0.2); color: #ff4757; border: 1px solid #ff4757; }
+.status-rejected { background: rgba(255, 71, 87, 0.2); color: #ff4757; border: 1px solid #ff4757; }
 
 /* Notification Badge in Sidebar */
 .badge {
@@ -231,13 +237,7 @@ textarea.glass-input {
 .pricing-card .price { font-size: 2.5rem; font-weight: 800; margin-bottom: 25px; }
 .pricing-card .price span { font-size: 1rem; color: var(--text-muted); font-weight: normal; }
 
-.pricing-card ul {
-    list-style: none;
-    text-align: left;
-    margin-bottom: 30px;
-    flex-grow: 1;
-}
-
+.pricing-card ul { list-style: none; text-align: left; margin-bottom: 30px; flex-grow: 1; }
 .pricing-card li { margin-bottom: 15px; display: flex; align-items: center; gap: 10px; font-size: 0.95rem; }
 .pricing-card li i { color: var(--wa-color); }
 .pricing-card li.disabled-feature { color: var(--text-muted); opacity: 0.6; }
