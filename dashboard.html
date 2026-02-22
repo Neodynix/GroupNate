@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GroupNate | User Dashboard</title>
+    <title>GroupNate | Creator Dashboard</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="styles/main.css">
     <link rel="stylesheet" href="styles/dashboard.css">
@@ -15,161 +15,185 @@
         <div class="blob blob-3"></div>
     </div>
 
-    <nav class="glass-header">
-        <div class="nav-left">
-            <div class="hamburger" onclick="toggleDashboardMenu()">
-                <i class="fa-solid fa-bars"></i>
-            </div>
-            <div class="logo">GroupNate <span style="color:var(--accent); font-size: 0.8rem;">Creator</span></div>
-        </div>
-        
-        <div class="nav-right">
-            <div class="user-profile-wrapper">
-                <div class="user-circle" id="userAvatar" onclick="toggleProfilePopup()">?</div>
-                <div class="profile-popup glass-panel hidden" id="profilePopup">
-                    <div class="profile-name">Creator</div>
-                    <div class="profile-email" id="profileEmail">loading...</div>
-                    <hr class="profile-divider">
-                    <div class="profile-stat">Active Groups: <span id="activeGroupCount">0</span></div>
+    <div id="authGate" class="overlay gatekeeper-overlay">
+        <div class="preview-modal glass-panel" style="max-width: 400px; padding: 40px 30px; margin: auto;">
+            <div class="logo" style="text-align: center; margin-bottom: 10px; font-size: 1.8rem;">GroupNate <span style="color:var(--accent);">Creator</span></div>
+            <h2 id="authTitle" style="text-align: center; margin-bottom: 25px; color: var(--text-muted); font-size: 1.1rem;">Welcome Back</h2>
+            
+            <form id="authForm" onsubmit="handleEmailAuth(event)">
+                <div class="filter-group" style="margin-bottom: 15px;">
+                    <label>Email</label>
+                    <input type="email" id="authEmail" class="glass-input" placeholder="you@example.com" required>
                 </div>
-            </div>
-        </div>
-    </nav>
+                <div class="filter-group" style="margin-bottom: 20px;">
+                    <label>Password</label>
+                    <input type="password" id="authPassword" class="glass-input" placeholder="••••••••" required>
+                </div>
+                <button type="submit" id="authSubmitBtn" class="apply-btn full-width">Log In</button>
+            </form>
 
-    <div class="side-menu glass-panel" id="dashboardMenu">
-        <div class="close-btn" onclick="toggleDashboardMenu()">&times;</div>
-        <ul>
-            <li><a href="#" class="nav-link active" onclick="switchView('manage', event)"><i class="fa-solid fa-layer-group"></i> Manage Groups</a></li>
-            <li><a href="#" class="nav-link" onclick="switchView('subscriptions', event)"><i class="fa-solid fa-crown"></i> Subscriptions</a></li>
-            <li><a href="#" class="nav-link" onclick="switchView('notifications', event)"><i class="fa-solid fa-bell"></i> Notifications <span class="badge">0</span></a></li>
-            <li><a href="#" style="color: #ff4757;" onclick="openLogoutModal()"><i class="fa-solid fa-right-from-bracket"></i> Logout</a></li>
-        </ul>
+            <p id="authToggleText" style="text-align: center; margin-top: 20px; font-size: 0.9rem; color: var(--text-muted);">
+                Need an account? <span style="color: var(--accent); cursor: pointer; font-weight: bold;" onclick="toggleAuthMode()">Sign Up</span>
+            </p>
+        </div>
     </div>
 
-    <main class="dashboard-container">
+    <div id="dashboardApp" class="hidden">
         
-        <div id="view-manage" class="dashboard-view active dashboard-grid">
+        <nav class="glass-header">
+            <div class="nav-left">
+                <div class="hamburger" onclick="toggleDashboardMenu()">
+                    <i class="fa-solid fa-bars"></i>
+                </div>
+                <div class="logo">GroupNate <span style="color:var(--accent); font-size: 0.8rem;">Creator</span></div>
+            </div>
             
-            <section class="control-panel glass-panel submit-section">
-                <h2 style="margin-bottom: 20px;"><i class="fa-solid fa-plus"></i> Submit a Community</h2>
-                
-                <form id="submitGroupForm">
-                    <div class="form-grid">
-                        <div class="filter-group full-width-span" style="grid-column: 1 / -1;">
-                            <label>Community Name</label>
-                            <input type="text" id="subName" class="glass-input" placeholder="e.g., Global Crypto Traders" required>
-                        </div>
-
-                        <div class="filter-group">
-                            <label>Platform</label>
-                            <select id="subPlatform" required>
-                                <option value="">Select Platform</option>
-                                <option value="discord">Discord</option>
-                                <option value="telegram">Telegram</option>
-                                <option value="whatsapp">WhatsApp</option>
-                                <option value="instagram">Instagram</option>
-                                <option value="facebook">Facebook</option>
-                                <option value="reddit">Reddit</option>
-                            </select>
-                        </div>
-
-                        <div class="filter-group">
-                            <label>Category</label>
-                            <select id="subCategory" required>
-                                <option value="">Select Category</option>
-                            </select>
-                            <small id="premiumWarning" class="warning-text hidden"><i class="fa-solid fa-lock"></i> Premium Category Selected</small>
-                        </div>
-
-                        <div class="filter-group">
-                            <label>Country</label>
-                            <select id="subCountry" required>
-                                <option value="">Select Country</option>
-                            </select>
-                        </div>
-
-                        <div class="filter-group">
-                            <label>City</label>
-                            <select id="subCity" required>
-                                <option value="">Select City</option>
-                            </select>
-                        </div>
+            <div class="nav-right">
+                <div class="user-profile-wrapper">
+                    <div class="user-circle" id="userAvatar" onclick="toggleProfilePopup()">?</div>
+                    <div class="profile-popup glass-panel hidden" id="profilePopup">
+                        <div class="profile-name">Creator</div>
+                        <div class="profile-email" id="profileEmail">loading...</div>
+                        <hr class="profile-divider">
+                        <div class="profile-stat">Active Groups: <span id="activeGroupCount">0</span></div>
                     </div>
-
-                    <div class="filter-group" style="margin-top: 15px;">
-                        <label>Invite Link</label>
-                        <input type="url" id="subLink" class="glass-input" placeholder="e.g., https://discord.gg/yourserver" required disabled>
-                        <small id="linkWarning" class="warning-text error hidden"><i class="fa-solid fa-triangle-exclamation"></i> Link does not match selected platform.</small>
-                        <small id="linkSuccess" class="success-text hidden"><i class="fa-solid fa-check-circle"></i> Valid link format!</small>
-                    </div>
-
-                    <div class="filter-group" style="margin-top: 15px; margin-bottom: 20px;">
-                        <label>Community Description</label>
-                        <textarea id="subDescription" class="glass-input" rows="4" placeholder="Describe your community in detail. What are the rules? Who is it for? (Minimum 40 chars, NO emojis)." required disabled></textarea>
-                        <small id="descWarning" class="warning-text error hidden"><i class="fa-solid fa-triangle-exclamation"></i> Must be 40+ chars, use real words, NO emojis.</small>
-                        <small id="descSuccess" class="success-text hidden"><i class="fa-solid fa-check-circle"></i> Looking good!</small>
-                    </div>
-
-                    <button type="submit" id="submitBtn" class="apply-btn full-width disabled-btn" disabled>Post Group</button>
-                </form>
-            </section>
-
-            <section class="control-panel glass-panel ledger-section">
-                <h2 style="margin-bottom: 20px;"><i class="fa-solid fa-list-check"></i> My Groups</h2>
-                <div class="ledger-list" id="myGroupsList">
-                    </div>
-            </section>
-        </div>
-
-        <div id="view-subscriptions" class="dashboard-view hidden">
-            <h2 style="margin-bottom: 20px;"><i class="fa-solid fa-crown"></i> Manage Subscriptions</h2>
-            <div class="pricing-grid">
-                <div class="pricing-card glass-panel">
-                    <h3>Basic</h3>
-                    <div class="price">Free</div>
-                    <ul>
-                        <li><i class="fa-solid fa-check"></i> 1 Free Group / Category</li>
-                        <li><i class="fa-solid fa-check"></i> Standard Support</li>
-                        <li class="disabled-feature"><i class="fa-solid fa-xmark"></i> Premium Categories</li>
-                    </ul>
-                    <button class="apply-btn full-width disabled-btn" disabled>Current Plan</button>
-                </div>
-                
-                <div class="pricing-card glass-panel featured">
-                    <div class="popular-badge">Most Popular</div>
-                    <h3>Creator Pro</h3>
-                    <div class="price">$5<span>/mo</span></div>
-                    <ul>
-                        <li><i class="fa-solid fa-check"></i> Unlimited Standard Groups</li>
-                        <li><i class="fa-solid fa-check"></i> 3 Premium Category Slots</li>
-                        <li><i class="fa-solid fa-check"></i> Priority Approval</li>
-                    </ul>
-                    <button class="apply-btn full-width" onclick="openPaymentModal('Creator Pro', 5)">Upgrade Now</button>
-                </div>
-                
-                <div class="pricing-card glass-panel">
-                    <h3>Agency</h3>
-                    <div class="price">$15<span>/mo</span></div>
-                    <ul>
-                        <li><i class="fa-solid fa-check"></i> Unlimited Everything</li>
-                        <li><i class="fa-solid fa-check"></i> Auto-Renew Listings</li>
-                        <li><i class="fa-solid fa-check"></i> Featured Placement</li>
-                    </ul>
-                    <button class="apply-btn full-width" onclick="openPaymentModal('Agency', 15)">Upgrade Now</button>
                 </div>
             </div>
+        </nav>
+
+        <div class="side-menu glass-panel" id="dashboardMenu">
+            <div class="close-btn" onclick="toggleDashboardMenu()">&times;</div>
+            <ul>
+                <li><a href="#" class="nav-link active" onclick="switchView('manage', event)"><i class="fa-solid fa-layer-group"></i> Manage Groups</a></li>
+                <li><a href="#" class="nav-link" onclick="switchView('subscriptions', event)"><i class="fa-solid fa-crown"></i> Subscriptions</a></li>
+                <li><a href="#" class="nav-link" onclick="switchView('notifications', event)"><i class="fa-solid fa-bell"></i> Notifications <span class="badge">0</span></a></li>
+                <li><a href="#" style="color: #ff4757;" onclick="openLogoutModal()"><i class="fa-solid fa-right-from-bracket"></i> Logout</a></li>
+            </ul>
         </div>
 
-        <div id="view-notifications" class="dashboard-view hidden">
-            <h2 style="margin-bottom: 20px;"><i class="fa-solid fa-bell"></i> Notifications</h2>
-            <div class="notification-list" id="notificationsList">
-                <p style="color:var(--text-muted); text-align:center;">You have no new notifications.</p>
+        <main class="dashboard-container">
+            
+            <div id="view-manage" class="dashboard-view active dashboard-grid">
+                
+                <section class="control-panel glass-panel submit-section">
+                    <h2 style="margin-bottom: 20px;"><i class="fa-solid fa-plus"></i> Submit a Community</h2>
+                    
+                    <form id="submitGroupForm">
+                        <div class="form-grid">
+                            <div class="filter-group full-width-span" style="grid-column: 1 / -1;">
+                                <label>Community Name</label>
+                                <input type="text" id="subName" class="glass-input" placeholder="e.g., Global Crypto Traders" required>
+                            </div>
+
+                            <div class="filter-group">
+                                <label>Platform</label>
+                                <select id="subPlatform" required>
+                                    <option value="">Select Platform</option>
+                                    <option value="discord">Discord</option>
+                                    <option value="telegram">Telegram</option>
+                                    <option value="whatsapp">WhatsApp</option>
+                                    <option value="instagram">Instagram</option>
+                                    <option value="facebook">Facebook</option>
+                                    <option value="reddit">Reddit</option>
+                                </select>
+                            </div>
+
+                            <div class="filter-group">
+                                <label>Category</label>
+                                <select id="subCategory" required>
+                                    <option value="">Select Category</option>
+                                </select>
+                                <small id="premiumWarning" class="warning-text hidden"><i class="fa-solid fa-lock"></i> Premium Category Selected</small>
+                            </div>
+
+                            <div class="filter-group">
+                                <label>Country</label>
+                                <select id="subCountry" required>
+                                    <option value="">Select Country</option>
+                                </select>
+                            </div>
+
+                            <div class="filter-group">
+                                <label>City</label>
+                                <select id="subCity" required>
+                                    <option value="">Select City</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="filter-group" style="margin-top: 15px;">
+                            <label>Invite Link</label>
+                            <input type="url" id="subLink" class="glass-input" placeholder="e.g., https://discord.gg/yourserver" required disabled>
+                            <small id="linkWarning" class="warning-text error hidden"><i class="fa-solid fa-triangle-exclamation"></i> Link does not match selected platform.</small>
+                            <small id="linkSuccess" class="success-text hidden"><i class="fa-solid fa-check-circle"></i> Valid link format!</small>
+                        </div>
+
+                        <div class="filter-group" style="margin-top: 15px; margin-bottom: 20px;">
+                            <label>Community Description</label>
+                            <textarea id="subDescription" class="glass-input" rows="4" placeholder="Describe your community in detail. What are the rules? Who is it for? (Minimum 40 chars, NO emojis)." required disabled></textarea>
+                            <small id="descWarning" class="warning-text error hidden"><i class="fa-solid fa-triangle-exclamation"></i> Must be 40+ chars, use real words, NO emojis.</small>
+                            <small id="descSuccess" class="success-text hidden"><i class="fa-solid fa-check-circle"></i> Looking good!</small>
+                        </div>
+
+                        <button type="submit" id="submitBtn" class="apply-btn full-width disabled-btn" disabled>Post Group</button>
+                    </form>
+                </section>
+
+                <section class="control-panel glass-panel ledger-section">
+                    <h2 style="margin-bottom: 20px;"><i class="fa-solid fa-list-check"></i> My Groups</h2>
+                    <div class="ledger-list" id="myGroupsList">
+                        </div>
+                </section>
+            </div>
+
+            <div id="view-subscriptions" class="dashboard-view hidden">
+                <h2 style="margin-bottom: 20px;"><i class="fa-solid fa-crown"></i> Manage Subscriptions</h2>
+                <div class="pricing-grid">
+                    <div class="pricing-card glass-panel">
+                        <h3>Basic</h3>
+                        <div class="price">Free</div>
+                        <ul>
+                            <li><i class="fa-solid fa-check"></i> 1 Free Group / Category</li>
+                            <li><i class="fa-solid fa-check"></i> Standard Support</li>
+                            <li class="disabled-feature"><i class="fa-solid fa-xmark"></i> Premium Categories</li>
+                        </ul>
+                        <button class="apply-btn full-width disabled-btn" disabled>Current Plan</button>
+                    </div>
+                    
+                    <div class="pricing-card glass-panel featured">
+                        <div class="popular-badge">Most Popular</div>
+                        <h3>Creator Pro</h3>
+                        <div class="price">$5<span>/mo</span></div>
+                        <ul>
+                            <li><i class="fa-solid fa-check"></i> Unlimited Standard Groups</li>
+                            <li><i class="fa-solid fa-check"></i> 3 Premium Category Slots</li>
+                            <li><i class="fa-solid fa-check"></i> Priority Approval</li>
+                        </ul>
+                        <button class="apply-btn full-width" onclick="openPaymentModal('Creator Pro', 5)">Upgrade Now</button>
+                    </div>
+                    
+                    <div class="pricing-card glass-panel">
+                        <h3>Agency</h3>
+                        <div class="price">$15<span>/mo</span></div>
+                        <ul>
+                            <li><i class="fa-solid fa-check"></i> Unlimited Everything</li>
+                            <li><i class="fa-solid fa-check"></i> Auto-Renew Listings</li>
+                            <li><i class="fa-solid fa-check"></i> Featured Placement</li>
+                        </ul>
+                        <button class="apply-btn full-width" onclick="openPaymentModal('Agency', 15)">Upgrade Now</button>
+                    </div>
                 </div>
-        </div>
+            </div>
 
-    </main>
+            <div id="view-notifications" class="dashboard-view hidden">
+                <h2 style="margin-bottom: 20px;"><i class="fa-solid fa-bell"></i> Notifications</h2>
+                <div class="notification-list" id="notificationsList">
+                    <p style="color:var(--text-muted); text-align:center;">You have no new notifications.</p>
+                </div>
+            </div>
 
-    <div id="paymentModal" class="overlay hidden">
+        </main>
+    </div> <div id="paymentModal" class="overlay hidden">
         <div class="preview-modal glass-panel" style="max-width: 500px;">
             <div class="preview-header">
                 <h2>Secure Checkout</h2>
@@ -185,7 +209,7 @@
         <div class="preview-modal glass-panel" style="max-width: 400px; text-align: center; padding: 30px;">
             <i class="fa-solid fa-right-from-bracket" style="font-size: 3rem; color: #ff4757; margin-bottom: 20px;"></i>
             <h2 style="margin-bottom: 10px;">Ready to leave?</h2>
-            <p style="color: var(--text-muted); margin-bottom: 25px;">You will need to log back in to manage your communities and subscriptions.</p>
+            <p style="color: var(--text-muted); margin-bottom: 25px;">You will need to log back in to manage your communities.</p>
             <div class="preview-actions" style="border: none; padding: 0; justify-content: center;">
                 <button class="nav-btn" onclick="closeModals()">Cancel</button>
                 <button class="apply-btn" style="background: #ff4757; margin-top: 0;" onclick="confirmLogout()">Yes, Logout</button>
@@ -196,4 +220,4 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="scripts/dashboard.js"></script>
 </body>
-</html>
+    </html>
