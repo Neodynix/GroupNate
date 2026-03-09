@@ -3,7 +3,7 @@
 // ===============================
 
 const supabaseUrl = "https://zpoktahbfhnanizgvehh.supabase.co";
-const supabaseKey = "YOUR_ANON_KEY";
+const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpwb2t0YWhiZmhuYW5pemd2ZWhoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE3ODkwNTIsImV4cCI6MjA4NzM2NTA1Mn0.9xL_kLbgVQmEDtgggb5PauUCGlt4Be5dbjXjp4Hs-Xg";
 
 const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
