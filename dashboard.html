@@ -7,10 +7,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="styles/main.css">
     <link rel="stylesheet" href="styles/dashboard.css">
-    <style>
-        /* Quick helper class for the mobile menu added in JS */
-        .side-menu.show { display: block; left: 0; }
-    </style>
 </head>
 <body>
     <div class="background-blobs">
@@ -68,9 +64,9 @@
         <div class="side-menu glass-panel" id="dashboardMenu">
             <div class="close-btn" onclick="toggleDashboardMenu()">&times;</div>
             <ul>
-                <li><a href="#" class="nav-link active" onclick="switchView('manage', this)"><i class="fa-solid fa-layer-group"></i> Manage Groups</a></li>
-                <li><a href="#" class="nav-link" onclick="switchView('subscriptions', this)"><i class="fa-solid fa-crown"></i> Subscriptions</a></li>
-                <li><a href="#" class="nav-link" onclick="switchView('notifications', this)"><i class="fa-solid fa-bell"></i> Notifications <span class="badge">0</span></a></li>
+                <li><a href="#" class="nav-link active" onclick="switchView('manage', event)"><i class="fa-solid fa-layer-group"></i> Manage Groups</a></li>
+                <li><a href="#" class="nav-link" onclick="switchView('subscriptions', event)"><i class="fa-solid fa-crown"></i> Subscriptions</a></li>
+                <li><a href="#" class="nav-link" onclick="switchView('notifications', event)"><i class="fa-solid fa-bell"></i> Notifications <span class="badge">0</span></a></li>
                 <li><a href="#" style="color: #ff4757;" onclick="openLogoutModal()"><i class="fa-solid fa-right-from-bracket"></i> Logout</a></li>
             </ul>
         </div>
@@ -84,9 +80,12 @@
                     
                     <form id="submitGroupForm">
                         <div class="form-grid">
+                            
                             <div class="filter-group full-width-span" style="grid-column: 1 / -1;">
                                 <label>Community Name</label>
                                 <input type="text" id="subName" class="glass-input" placeholder="e.g., Global Crypto Traders" required>
+                                <small id="nameWarning" class="warning-text error hidden"><i class="fa-solid fa-triangle-exclamation"></i> Must be 3+ chars, no emojis, and no gibberish.</small>
+                                <small id="nameSuccess" class="success-text hidden"><i class="fa-solid fa-check-circle"></i> Looks good!</small>
                             </div>
 
                             <div class="filter-group">
@@ -106,9 +105,6 @@
                                 <label>Category</label>
                                 <select id="subCategory" required>
                                     <option value="">Select Category</option>
-                                    <option value="crypto">Crypto</option>
-                                    <option value="gaming">Gaming</option>
-                                    <option value="business">Business</option>
                                 </select>
                                 <small id="premiumWarning" class="warning-text hidden"><i class="fa-solid fa-lock"></i> Premium Category Selected</small>
                             </div>
@@ -117,9 +113,6 @@
                                 <label>Country</label>
                                 <select id="subCountry" required>
                                     <option value="">Select Country</option>
-                                    <option value="global">Global</option>
-                                    <option value="us">United States</option>
-                                    <option value="uk">United Kingdom</option>
                                 </select>
                             </div>
 
@@ -127,22 +120,25 @@
                                 <label>City</label>
                                 <select id="subCity" required>
                                     <option value="">Select City</option>
-                                    <option value="any">Any / Not Applicable</option>
                                 </select>
                             </div>
                         </div>
 
                         <div class="filter-group" style="margin-top: 15px;">
                             <label>Invite Link</label>
-                            <input type="url" id="subLink" class="glass-input" placeholder="e.g., https://discord.gg/yourserver" required>
+                            <input type="url" id="subLink" class="glass-input" placeholder="e.g., https://discord.gg/yourserver" required disabled>
+                            <small id="linkWarning" class="warning-text error hidden"><i class="fa-solid fa-triangle-exclamation"></i> Link does not match selected platform.</small>
+                            <small id="linkSuccess" class="success-text hidden"><i class="fa-solid fa-check-circle"></i> Valid link format!</small>
                         </div>
 
                         <div class="filter-group" style="margin-top: 15px; margin-bottom: 20px;">
                             <label>Community Description</label>
-                            <textarea id="subDescription" class="glass-input" rows="4" placeholder="Describe your community in detail. What are the rules? Who is it for?" required></textarea>
+                            <textarea id="subDescription" class="glass-input" rows="4" placeholder="Describe your community in detail. What are the rules? Who is it for? (Minimum 40 chars, NO emojis)." required disabled></textarea>
+                            <small id="descWarning" class="warning-text error hidden"><i class="fa-solid fa-triangle-exclamation"></i> Must be 40+ chars, use real words, NO emojis or gibberish.</small>
+                            <small id="descSuccess" class="success-text hidden"><i class="fa-solid fa-check-circle"></i> Looking good!</small>
                         </div>
 
-                        <button type="submit" id="submitBtn" class="apply-btn full-width">Post Group</button>
+                        <button type="submit" id="submitBtn" class="apply-btn full-width disabled-btn" disabled>Post Group</button>
                     </form>
                 </section>
 
@@ -226,8 +222,8 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.min.js"></script>
-    <script src="dashboard-auth.js"></script>
-    <script src="dashboard-ui.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="scripts/dashboard-ui.js"></script>
+    <script src="scripts/dashboard-auth.js"></script>
 </body>
-    </html>
+            </html>
