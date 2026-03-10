@@ -52,10 +52,10 @@
                 <div class="user-profile-wrapper">
                     <div class="user-circle" id="userAvatar" onclick="toggleProfilePopup()">?</div>
                     <div class="profile-popup glass-panel hidden" id="profilePopup">
-                        <div class="profile-name">Creator</div>
+                        <div class="profile-name" id="profilePlanLabel">Free Tier</div>
                         <div class="profile-email" id="profileEmail">loading...</div>
                         <hr class="profile-divider">
-                        <div class="profile-stat">Active Groups: <span id="activeGroupCount">0</span></div>
+                        <div class="profile-stat">My Groups: <span id="activeGroupCount">0</span></div>
                     </div>
                 </div>
             </div>
@@ -66,13 +66,12 @@
             <ul>
                 <li><a href="#" class="nav-link active" onclick="switchView('manage', event)"><i class="fa-solid fa-layer-group"></i> Manage Groups</a></li>
                 <li><a href="#" class="nav-link" onclick="switchView('subscriptions', event)"><i class="fa-solid fa-crown"></i> Subscriptions</a></li>
-                <li><a href="#" class="nav-link" onclick="switchView('notifications', event)"><i class="fa-solid fa-bell"></i> Notifications <span class="badge">0</span></a></li>
+                <li><a href="#" class="nav-link" onclick="switchView('notifications', event)"><i class="fa-solid fa-bell"></i> Notifications <span class="badge" id="notifBadge">0</span></a></li>
                 <li><a href="#" style="color: #ff4757;" onclick="openLogoutModal()"><i class="fa-solid fa-right-from-bracket"></i> Logout</a></li>
             </ul>
         </div>
 
         <main class="dashboard-container">
-            
             <div id="view-manage" class="dashboard-view active dashboard-grid">
                 
                 <section class="control-panel glass-panel submit-section">
@@ -84,7 +83,7 @@
                             <div class="filter-group full-width-span" style="grid-column: 1 / -1;">
                                 <label>Community Name</label>
                                 <input type="text" id="subName" class="glass-input" placeholder="e.g., Global Crypto Traders" required>
-                                <small id="nameWarning" class="warning-text error hidden"><i class="fa-solid fa-triangle-exclamation"></i> Must be 3+ chars, no emojis, and no gibberish.</small>
+                                <small id="nameWarning" class="warning-text error hidden"><i class="fa-solid fa-triangle-exclamation"></i> Must be 3+ chars, no emojis.</small>
                                 <small id="nameSuccess" class="success-text hidden"><i class="fa-solid fa-check-circle"></i> Looks good!</small>
                             </div>
 
@@ -103,38 +102,32 @@
 
                             <div class="filter-group">
                                 <label>Category</label>
-                                <select id="subCategory" required>
-                                    <option value="">Select Category</option>
-                                </select>
+                                <select id="subCategory" required></select>
                                 <small id="premiumWarning" class="warning-text hidden"><i class="fa-solid fa-lock"></i> Premium Category Selected</small>
                             </div>
 
                             <div class="filter-group">
                                 <label>Country</label>
-                                <select id="subCountry" required>
-                                    <option value="">Select Country</option>
-                                </select>
+                                <select id="subCountry" required></select>
                             </div>
 
                             <div class="filter-group">
                                 <label>City</label>
-                                <select id="subCity" required>
-                                    <option value="">Select City</option>
-                                </select>
+                                <select id="subCity" required></select>
                             </div>
                         </div>
 
                         <div class="filter-group" style="margin-top: 15px;">
                             <label>Invite Link</label>
                             <input type="url" id="subLink" class="glass-input" placeholder="e.g., https://discord.gg/yourserver" required disabled>
-                            <small id="linkWarning" class="warning-text error hidden"><i class="fa-solid fa-triangle-exclamation"></i> Link does not match selected platform.</small>
-                            <small id="linkSuccess" class="success-text hidden"><i class="fa-solid fa-check-circle"></i> Valid link format!</small>
+                            <small id="linkWarning" class="warning-text error hidden"><i class="fa-solid fa-triangle-exclamation"></i> Invalid platform link.</small>
+                            <small id="linkSuccess" class="success-text hidden"><i class="fa-solid fa-check-circle"></i> Valid format!</small>
                         </div>
 
                         <div class="filter-group" style="margin-top: 15px; margin-bottom: 20px;">
                             <label>Community Description</label>
-                            <textarea id="subDescription" class="glass-input" rows="4" placeholder="Describe your community in detail. What are the rules? Who is it for? (Minimum 40 chars, NO emojis)." required disabled></textarea>
-                            <small id="descWarning" class="warning-text error hidden"><i class="fa-solid fa-triangle-exclamation"></i> Must be 40+ chars, use real words, NO emojis or gibberish.</small>
+                            <textarea id="subDescription" class="glass-input" rows="4" placeholder="Minimum 40 chars, NO emojis." required disabled></textarea>
+                            <small id="descWarning" class="warning-text error hidden"><i class="fa-solid fa-triangle-exclamation"></i> Need 40+ chars, no emojis.</small>
                             <small id="descSuccess" class="success-text hidden"><i class="fa-solid fa-check-circle"></i> Looking good!</small>
                         </div>
 
@@ -144,44 +137,42 @@
 
                 <section class="control-panel glass-panel ledger-section">
                     <h2 style="margin-bottom: 20px;"><i class="fa-solid fa-list-check"></i> My Groups</h2>
-                    <div class="ledger-list" id="myGroupsList">
-                        </div>
+                    <div class="ledger-list" id="myGroupsList"></div>
                 </section>
             </div>
 
             <div id="view-subscriptions" class="dashboard-view hidden">
                 <h2 style="margin-bottom: 20px;"><i class="fa-solid fa-crown"></i> Manage Subscriptions</h2>
                 <div class="pricing-grid">
-                    <div class="pricing-card glass-panel">
+                    <div class="pricing-card glass-panel" id="plan-Free">
                         <h3>Basic</h3>
                         <div class="price">Free</div>
                         <ul>
-                            <li><i class="fa-solid fa-check"></i> 1 Free Group / Category</li>
-                            <li><i class="fa-solid fa-check"></i> Standard Support</li>
+                            <li><i class="fa-solid fa-check"></i> 1 Group per Platform</li>
+                            <li><i class="fa-solid fa-check"></i> Requires Verification</li>
                             <li class="disabled-feature"><i class="fa-solid fa-xmark"></i> Premium Categories</li>
                         </ul>
-                        <button class="apply-btn full-width disabled-btn" disabled>Current Plan</button>
                     </div>
                     
-                    <div class="pricing-card glass-panel featured">
+                    <div class="pricing-card glass-panel featured" id="plan-Pro">
                         <div class="popular-badge">Most Popular</div>
                         <h3>Creator Pro</h3>
                         <div class="price">$5<span>/mo</span></div>
                         <ul>
+                            <li><i class="fa-solid fa-check"></i> Instant Approval (Standard)</li>
+                            <li><i class="fa-solid fa-check"></i> Access Premium Categories</li>
                             <li><i class="fa-solid fa-check"></i> Unlimited Standard Groups</li>
-                            <li><i class="fa-solid fa-check"></i> 3 Premium Category Slots</li>
-                            <li><i class="fa-solid fa-check"></i> Priority Approval</li>
                         </ul>
                         <button class="apply-btn full-width" onclick="openPaymentModal('Creator Pro', 5)">Upgrade Now</button>
                     </div>
                     
-                    <div class="pricing-card glass-panel">
+                    <div class="pricing-card glass-panel" id="plan-Agency">
                         <h3>Agency</h3>
                         <div class="price">$15<span>/mo</span></div>
                         <ul>
+                            <li><i class="fa-solid fa-check"></i> Instant Approval (All)</li>
                             <li><i class="fa-solid fa-check"></i> Unlimited Everything</li>
-                            <li><i class="fa-solid fa-check"></i> Auto-Renew Listings</li>
-                            <li><i class="fa-solid fa-check"></i> Featured Placement</li>
+                            <li><i class="fa-solid fa-check"></i> Priority Directory Placement</li>
                         </ul>
                         <button class="apply-btn full-width" onclick="openPaymentModal('Agency', 15)">Upgrade Now</button>
                     </div>
@@ -190,22 +181,22 @@
 
             <div id="view-notifications" class="dashboard-view hidden">
                 <h2 style="margin-bottom: 20px;"><i class="fa-solid fa-bell"></i> Notifications</h2>
+                <p style="color:var(--text-muted); font-size: 0.9rem; margin-bottom: 15px;">Notifications are deleted automatically once viewed.</p>
                 <div class="notification-list" id="notificationsList">
                     <p style="color:var(--text-muted); text-align:center;">You have no new notifications.</p>
                 </div>
             </div>
-
         </main>
     </div> 
     
     <div id="paymentModal" class="overlay hidden">
         <div class="preview-modal glass-panel" style="max-width: 500px;">
             <div class="preview-header">
-                <h2>Secure Checkout</h2>
+                <h2>Secure Checkout via Pesapal</h2>
                 <div class="close-modal" onclick="closeModals()">&times;</div>
             </div>
-            <div class="preview-scroll" style="padding: 0;">
-                <iframe id="gatewayIframe" src="about:blank" style="width: 100%; height: 450px; border: none;"></iframe>
+            <div class="preview-scroll" style="padding: 0; height: 450px;">
+                <iframe id="gatewayIframe" src="about:blank" style="width: 100%; height: 100%; border: none;"></iframe>
             </div>
         </div>
     </div>
@@ -214,7 +205,6 @@
         <div class="preview-modal glass-panel" style="max-width: 400px; text-align: center; padding: 30px;">
             <i class="fa-solid fa-right-from-bracket" style="font-size: 3rem; color: #ff4757; margin-bottom: 20px;"></i>
             <h2 style="margin-bottom: 10px;">Ready to leave?</h2>
-            <p style="color: var(--text-muted); margin-bottom: 25px;">You will need to log back in to manage your communities.</p>
             <div class="preview-actions" style="border: none; padding: 0; justify-content: center;">
                 <button class="nav-btn" onclick="closeModals()">Cancel</button>
                 <button class="apply-btn" style="background: #ff4757; margin-top: 0;" onclick="confirmLogout()">Yes, Logout</button>
@@ -223,8 +213,8 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="scripts/dashboard-ui.js"></script>
     <script src="scripts/auth.js"></script>
+    <script src="scripts/dashboard-ui.js"></script>
+    <script src="scripts/payment.js"></script>
     <script src="scripts/data.js"></script>
-</body>
-    </html>
+</body>                                     </html>
