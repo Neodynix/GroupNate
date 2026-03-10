@@ -1,5 +1,5 @@
 // ==========================================
-// dashboard-ui.js
+// ui-validation.js
 // Handles Modals, Menus, and Form Checking
 // ==========================================
 
@@ -18,7 +18,7 @@ const locations = {
     "Global": ["Any / Not Applicable"]
 };
 
-// --- Regex Patterns ---
+// --- Regex Patterns (SPAM DETECTORS) ---
 const linkPatterns = {
     discord: /^(https?:\/\/)?(discord\.gg|discord\.com\/invite)\/[a-zA-Z0-9-]+$/i,
     telegram: /^(https?:\/\/)?(t\.me|telegram\.me)\/[a-zA-Z0-9_]+$/i,
@@ -27,7 +27,12 @@ const linkPatterns = {
     reddit: /^(https?:\/\/)?(www\.)?reddit\.com\/r\/[a-zA-Z0-9_]+\/?$/i,
     instagram: /^(https?:\/\/)?(ig\.me\/j\/|www\.instagram\.com\/[a-zA-Z0-9_.]+\/?)$/i
 };
+
+// Blocks emojis
 const emojiRegex = /([\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF])/g;
+
+// Blocks 4 repeating characters (jjjj) OR 6 consonants in a row (rtsdkl)
+const gibberishRegex = /(.)\1{3,}|[bcdfghjklmnpqrstvwxz]{6,}/i; 
 
 // --- Initialize UI ---
 function initUI() {
@@ -47,10 +52,27 @@ function initUI() {
 }
 
 // --- Menu & Modal Toggles ---
+window.toggleAuthMode = function() {
+    const title = document.getElementById('authTitle');
+    const toggleText = document.getElementById('authToggleText');
+    const submitBtn = document.getElementById('authSubmitBtn');
+    
+    if (!title || !toggleText || !submitBtn) return;
+
+    if (title.innerText === 'Welcome Back') {
+        title.innerText = 'Create Account';
+        submitBtn.innerText = 'Sign Up';
+        toggleText.innerHTML = 'Already have an account? <span style="color: var(--accent); cursor: pointer; font-weight: bold;" onclick="toggleAuthMode()">Log In</span>';
+    } else {
+        title.innerText = 'Welcome Back';
+        submitBtn.innerText = 'Log In';
+        toggleText.innerHTML = 'Need an account? <span style="color: var(--accent); cursor: pointer; font-weight: bold;" onclick="toggleAuthMode()">Sign Up</span>';
+    }
+};
+
 window.toggleDashboardMenu = () => {
     const menu = document.getElementById("dashboardMenu");
     if (menu) {
-        // Correctly triggers the mobile sidebar using 'active'
         menu.classList.toggle("active");
         menu.classList.toggle("show");
     }
@@ -61,12 +83,15 @@ window.toggleProfilePopup = () => {
 };
 
 window.switchView = (viewName, el) => {
+    // Hide all views, show target
     document.querySelectorAll(".dashboard-view").forEach(v => v.classList.add("hidden"));
     document.getElementById(`view-${viewName}`)?.classList.remove("hidden");
+    
+    // Update active state on sidebar
     document.querySelectorAll(".nav-link").forEach(l => l.classList.remove("active"));
     if (el) el.classList.add("active");
     
-    // Close mobile menu safely
+    // Close mobile menu
     const menu = document.getElementById("dashboardMenu");
     if (menu) {
         menu.classList.remove("active");
@@ -76,6 +101,11 @@ window.switchView = (viewName, el) => {
 
 window.openLogoutModal = () => document.getElementById("logoutModal")?.classList.remove("hidden");
 window.closeModals = () => document.querySelectorAll(".overlay:not(#authGate)").forEach(m => m.classList.add("hidden"));
+window.openPaymentModal = function(planName, price) {
+    const iframe = document.getElementById('gatewayIframe');
+    if(iframe) iframe.src = `about:blank`; // Add your payment URL here later
+    document.getElementById('paymentModal')?.classList.remove('hidden');
+};
 
 // --- Form Validation Listeners ---
 function setupFormListeners() {
@@ -113,14 +143,34 @@ function setupFormListeners() {
         if (window.premiumCategories.includes(this.value)) {
             premiumWarning?.classList.remove("hidden");
             if(btn) btn.innerHTML = '<i class="fa-solid fa-crown"></i> Subscribe to Post';
+            if(btn) btn.style.background = 'linear-gradient(45deg, #f1c40f, #e67e22)';
         } else {
             premiumWarning?.classList.add("hidden");
             if(btn) btn.innerText = window.editingGroupId ? "Update Group" : "Post Group";
+            if(btn) btn.style.background = '';
         }
         window.validateForm();
     });
 
-    // Link Validation (Checks specific formats like Discord, WA, etc.)
+    // Name Validation (Spam & Length)
+    subName?.addEventListener("input", debounce(() => {
+        const text = subName.value.trim();
+        const hasEmojis = emojiRegex.test(text);
+        const isGibberish = gibberishRegex.test(text);
+        const nameWarning = document.getElementById("nameWarning");
+        const nameSuccess = document.getElementById("nameSuccess");
+
+        if (text === "") {
+            nameWarning?.classList.add("hidden"); nameSuccess?.classList.add("hidden");
+        } else if (hasEmojis || isGibberish || text.length < 3) {
+            nameWarning?.classList.remove("hidden"); nameSuccess?.classList.add("hidden");
+        } else {
+            nameSuccess?.classList.remove("hidden"); nameWarning?.classList.add("hidden");
+        }
+        window.validateForm();
+    }, 400));
+
+    // Link Validation 
     subLink?.addEventListener("input", debounce(() => {
         const url = subLink.value.trim();
         const platform = subPlatform?.value;
@@ -137,26 +187,25 @@ function setupFormListeners() {
         window.validateForm();
     }, 400));
 
-    // Description Validation (Blocks Emojis & Gibberish)
+    // Description Validation (Spam, Emojis, Short Text)
     subDescription?.addEventListener("input", debounce(() => {
         const text = subDescription.value.trim();
         const hasEmojis = emojiRegex.test(text);
+        const isGibberish = gibberishRegex.test(text);
         const words = text.split(/\s+/).filter(w => w.length > 1);
+        
         const descWarning = document.getElementById("descWarning");
         const descSuccess = document.getElementById("descSuccess");
 
         if (text === "") {
             descWarning?.classList.add("hidden"); descSuccess?.classList.add("hidden");
-        } else if (hasEmojis || text.length < 40 || words.length < 5) {
+        } else if (hasEmojis || isGibberish || text.length < 40 || words.length < 5) {
             descWarning?.classList.remove("hidden"); descSuccess?.classList.add("hidden");
         } else {
             descSuccess?.classList.remove("hidden"); descWarning?.classList.add("hidden");
         }
         window.validateForm();
     }, 400));
-    
-    // Check form dynamically on name type
-    subName?.addEventListener("input", window.validateForm);
 }
 
 // Master Validation: Checks if the Submit Button should be unlocked
@@ -164,26 +213,26 @@ window.validateForm = function() {
     const btn = document.getElementById("submitBtn");
     if(!btn) return;
 
-    const subName = document.getElementById("subName");
     const subPlatform = document.getElementById("subPlatform");
     const subCategory = document.getElementById("subCategory");
     const subCountry = document.getElementById("subCountry");
     const subCity = document.getElementById("subCity");
 
-    const isNameSet = subName && subName.value.trim() !== "";
     const isPlatformSet = subPlatform && subPlatform.value !== "";
     const isCategorySet = subCategory && subCategory.value !== "";
     const isCountrySet = subCountry && subCountry.value !== "";
     const isCitySet = subCity && subCity.value !== "";
     
+    const nameSuccess = document.getElementById("nameSuccess");
     const linkSuccess = document.getElementById("linkSuccess");
     const descSuccess = document.getElementById("descSuccess");
     
-    // Safely reads the visual HTML warnings to decide if data is valid
+    // The button will only unlock if the 'Success' messages are visible
+    const isNameValid = nameSuccess ? !nameSuccess.classList.contains("hidden") : true;
     const isLinkValid = linkSuccess ? !linkSuccess.classList.contains("hidden") : true;
     const isDescValid = descSuccess ? !descSuccess.classList.contains("hidden") : true;
 
-    if (isNameSet && isPlatformSet && isCategorySet && isCountrySet && isCitySet && isLinkValid && isDescValid) {
+    if (isPlatformSet && isCategorySet && isCountrySet && isCitySet && isNameValid && isLinkValid && isDescValid) {
         btn.disabled = false;
         btn.classList.remove("disabled-btn");
     } else {
