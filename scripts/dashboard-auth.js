@@ -1,7 +1,9 @@
 // ==========================================
-// dashboard-auth.js
+// auth-data.js
 // Handles Supabase Auth and Database
 // ==========================================
+
+console.log("Auth & Data Script Loaded");
 
 const supabaseUrl = 'https://zpoktahbfhnanizgvehh.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpwb2t0YWhiZmhuYW5pemd2ZWhoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE3ODkwNTIsImV4cCI6MjA4NzM2NTA1Mn0.9xL_kLbgVQmEDtgggb5PauUCGlt4Be5dbjXjp4Hs-Xg';
@@ -83,7 +85,7 @@ window.confirmLogout = async function() {
     else window.location.reload(); 
 };
 
-// --- CRUD ---
+// --- CRUD Operations ---
 async function fetchMyGroups() {
     if(!window.currentUser) return;
     const { data, error } = await supabase
@@ -112,6 +114,7 @@ document.getElementById('submitGroupForm')?.addEventListener('submit', async fun
     const subPlatform = document.getElementById('subPlatform');
     const subCategory = document.getElementById('subCategory');
 
+    // Dynamically categorize Discord as Server, Reddit as Community, etc.
     let determinedType = 'Group';
     if (subPlatform.value === 'discord') determinedType = 'Server';
     if (subPlatform.value === 'reddit') determinedType = 'Community';
@@ -152,21 +155,24 @@ document.getElementById('submitGroupForm')?.addEventListener('submit', async fun
 
     alert(window.editingGroupId ? "Community Updated Successfully!" : "Community Submitted for Review!");
     
+    // Reset form and hide visual success labels
     e.target.reset();
     
     const subLink = document.getElementById('subLink');
     const subDescription = document.getElementById('subDescription');
+    const nameSuccess = document.getElementById('nameSuccess');
     const linkSuccess = document.getElementById('linkSuccess');
     const descSuccess = document.getElementById('descSuccess');
     
     if(subLink) subLink.disabled = true;
     if(subDescription) subDescription.disabled = true;
+    if(nameSuccess) nameSuccess.classList.add('hidden');
     if(linkSuccess) linkSuccess.classList.add('hidden');
     if(descSuccess) descSuccess.classList.add('hidden');
     
     window.editingGroupId = null;
     submitBtn.innerHTML = 'Post Group';
-    if(window.validateForm) window.validateForm();
+    if(window.validateForm) window.validateForm(); // Re-lock the button
     
     await fetchMyGroups();
 });
@@ -175,13 +181,13 @@ window.deleteGroup = async function(id) {
     if (confirm("Are you sure you want to delete this community?")) {
         const previousGroups = [...window.myPostedGroups];
         window.myPostedGroups = window.myPostedGroups.filter(g => g.id !== id);
-        renderMyGroups();
+        renderMyGroups(); // Optimistic UI update
 
         const { error } = await supabase.from('communities').delete().eq('id', id).eq('user_id', window.currentUser.id);
 
         if (error) {
             alert("Failed to delete. Please try again.");
-            window.myPostedGroups = previousGroups; 
+            window.myPostedGroups = previousGroups; // Revert on fail
             renderMyGroups();
         } else {
             const countLabel = document.getElementById('activeGroupCount');
@@ -245,13 +251,14 @@ window.editGroup = function(id) {
     const subLink = document.getElementById('subLink');
     const subDescription = document.getElementById('subDescription');
 
+    // Fill inputs
     if(subName) subName.value = group.name;
     if(subPlatform) subPlatform.value = group.platform;
     if(subCategory) subCategory.value = group.category;
     
     if(subCountry) {
         subCountry.value = group.country;
-        subCountry.dispatchEvent(new Event('change'));
+        subCountry.dispatchEvent(new Event('change')); // Triggers city list update
     }
     
     if(subCity) subCity.value = group.city;
@@ -266,6 +273,7 @@ window.editGroup = function(id) {
         subDescription.disabled = false;
     }
 
+    // Dispatch input events to trigger UI validation success labels
     if(subLink) subLink.dispatchEvent(new Event('input'));
     if(subDescription) subDescription.dispatchEvent(new Event('input'));
     if(subCategory) subCategory.dispatchEvent(new Event('change'));
