@@ -2,30 +2,23 @@
 // auth.js - Production Version
 // ==========================================
 
-const supabaseUrl = 'https://zpoktahbfhnanizgvehh.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpwb2t0YWhiZmhuYW5pemd2ZWhoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE3ODkwNTIsImV4cCI6MjA4NzM2NTA1Mn0.9xL_kLbgVQmEDtgggb5PauUCGlt4Be5dbjXjp4Hs-Xg';
-
+const supabaseUrl = 'YOUR_SUPABASE_URL';
+const supabaseKey = 'YOUR_SUPABASE_ANON_KEY';
 window.supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 window.currentUser = null;
 
 document.addEventListener("DOMContentLoaded", () => {
-    
     const authForm = document.getElementById('authForm');
     
     if (authForm) {
         authForm.addEventListener('submit', async function(e) {
             e.preventDefault(); 
-
             const email = document.getElementById('authEmail').value;
             const password = document.getElementById('authPassword').value;
             const submitBtn = document.getElementById('authSubmitBtn');
             const authTitle = document.getElementById('authTitle');
 
-            if (!email || !password) {
-                alert("Please enter both an email and password.");
-                return;
-            }
-
+            if (!email || !password) return alert("Enter email and password.");
             const isLogin = authTitle.innerText.includes('Welcome Back');
             
             const originalText = submitBtn.innerText;
@@ -39,11 +32,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 } else {
                     const { error } = await window.supabaseClient.auth.signUp({ email, password });
                     if (error) throw error;
-                    alert("Account created successfully! Please check your email for a confirmation link.");
+                    alert("Account created successfully!");
                     if(typeof window.toggleAuthMode === 'function') window.toggleAuthMode();
                 }
             } catch (error) {
-                // We keep this alert so users know if they typed the wrong password
                 alert(error.message);
             } finally {
                 submitBtn.innerHTML = originalText;
@@ -53,7 +45,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
-// Listen for Login/Logout changes
+// Auth State Listener
 window.supabaseClient.auth.onAuthStateChange((event, session) => {
     const authGate = document.getElementById('authGate');
     const dashboardApp = document.getElementById('dashboardApp');
@@ -63,15 +55,12 @@ window.supabaseClient.auth.onAuthStateChange((event, session) => {
         if(authGate) authGate.classList.add('hidden');
         if(dashboardApp) dashboardApp.classList.remove('hidden');
         
-        const avatar = document.getElementById('userAvatar');
-        const emailLabel = document.getElementById('profileEmail');
+        document.getElementById('userAvatar').innerText = window.currentUser.email.charAt(0).toUpperCase();
+        document.getElementById('profileEmail').innerText = window.currentUser.email;
         
-        if(avatar) avatar.innerText = window.currentUser.email.charAt(0).toUpperCase();
-        if(emailLabel) emailLabel.innerText = window.currentUser.email;
-        
-        // Fetch data once logged in
-        if (typeof window.fetchMyGroups === 'function') {
-            window.fetchMyGroups(); 
+        // Trigger data fetch for everything (Groups, Subscriptions, Notifications)
+        if (typeof window.fetchDashboardData === 'function') {
+            window.fetchDashboardData(); 
         }
     } else {
         window.currentUser = null;
