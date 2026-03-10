@@ -1,11 +1,12 @@
 // ==========================================
-// ui-validation.js
-// Handles UI, Validation, and Interactions
+// dashboard-ui.js
+// Handles Modals, Menus, and Form Checking
 // ==========================================
 
-// --- Shared State ---
-window.premiumCategories = ["Crypto", "Real Estate", "Investments"];
+console.log("UI & Validation Script Loaded");
 
+// --- Shared Data ---
+window.premiumCategories = ["Crypto", "Real Estate", "Investments"];
 const categories = ["Art & Design", "Automotive", "Business", "Career", "Crypto", "Dating", "Education", "Entertainment", "Fashion", "Fitness", "Food", "Gaming", "Health", "Hobbies", "Investments", "Jobs", "Lifestyle", "Memes", "Music", "News", "Pets", "Politics", "Real Estate", "Science", "Shopping", "Sports", "Technology", "Travel", "Writing"];
 const locations = {
     "USA": ["New York", "Los Angeles", "Chicago", "Houston", "San Francisco"],
@@ -17,6 +18,7 @@ const locations = {
     "Global": ["Any / Not Applicable"]
 };
 
+// --- Regex Patterns ---
 const linkPatterns = {
     discord: /^(https?:\/\/)?(discord\.gg|discord\.com\/invite)\/[a-zA-Z0-9-]+$/i,
     telegram: /^(https?:\/\/)?(t\.me|telegram\.me)\/[a-zA-Z0-9_]+$/i,
@@ -25,150 +27,148 @@ const linkPatterns = {
     reddit: /^(https?:\/\/)?(www\.)?reddit\.com\/r\/[a-zA-Z0-9_]+\/?$/i,
     instagram: /^(https?:\/\/)?(ig\.me\/j\/|www\.instagram\.com\/[a-zA-Z0-9_.]+\/?)$/i
 };
-
 const emojiRegex = /([\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF])/g;
 
 // --- Initialize UI ---
-document.addEventListener("DOMContentLoaded", () => {
-    const subCategory = document.getElementById('subCategory');
-    const subCountry = document.getElementById('subCountry');
-    
-    if(subCategory) {
+function initUI() {
+    const subCategory = document.getElementById("subCategory");
+    const subCountry = document.getElementById("subCountry");
+
+    if (subCategory) {
+        subCategory.innerHTML = '<option value="">Select Category</option>';
         categories.forEach(cat => subCategory.appendChild(new Option(cat, cat)));
     }
-    if(subCountry) {
+    if (subCountry) {
+        subCountry.innerHTML = '<option value="">Select Country</option>';
         Object.keys(locations).forEach(country => subCountry.appendChild(new Option(country, country)));
     }
     
-    setupDashboardListeners();
-});
+    setupFormListeners();
+}
 
-// --- Auth UI Toggles ---
-window.toggleAuthMode = function() {
-    const title = document.getElementById('authTitle');
-    const toggleText = document.getElementById('authToggleText');
-    const submitBtn = document.getElementById('authSubmitBtn');
-    
-    if (!title || !toggleText || !submitBtn) return;
-
-    if (title.innerText === 'Welcome Back') {
-        title.innerText = 'Create Account';
-        submitBtn.innerText = 'Sign Up';
-        toggleText.innerHTML = 'Already have an account? <span style="color: var(--accent); cursor: pointer; font-weight: bold;" onclick="toggleAuthMode()">Log In</span>';
-    } else {
-        title.innerText = 'Welcome Back';
-        submitBtn.innerText = 'Log In';
-        toggleText.innerHTML = 'Need an account? <span style="color: var(--accent); cursor: pointer; font-weight: bold;" onclick="toggleAuthMode()">Sign Up</span>';
+// --- Menu & Modal Toggles ---
+window.toggleDashboardMenu = () => {
+    const menu = document.getElementById("dashboardMenu");
+    if (menu) {
+        // Correctly triggers the mobile sidebar using 'active'
+        menu.classList.toggle("active");
+        menu.classList.toggle("show");
     }
 };
 
-// --- Form Validation Listeners ---
-function setupDashboardListeners() {
-    const subCountry = document.getElementById('subCountry');
-    const subCity = document.getElementById('subCity');
-    const subPlatform = document.getElementById('subPlatform');
-    const subCategory = document.getElementById('subCategory');
-    const subLink = document.getElementById('subLink');
-    const subDescription = document.getElementById('subDescription');
-    const subName = document.getElementById('subName');
+window.toggleProfilePopup = () => {
+    document.getElementById("profilePopup")?.classList.toggle("hidden");
+};
 
-    if(subCountry) {
-        subCountry.addEventListener('change', function() {
-            if(subCity) {
-                subCity.innerHTML = '<option value="">Select City</option>';
-                if(locations[this.value]) locations[this.value].forEach(city => subCity.appendChild(new Option(city, city)));
-            }
-            window.validateForm();
-        });
-    }
-
-    if(subPlatform) {
-        subPlatform.addEventListener('change', function() {
-            const isEnabled = this.value !== "";
-            if(subLink) subLink.disabled = !isEnabled;
-            if(subDescription) subDescription.disabled = !isEnabled;
-            if(subLink) subLink.dispatchEvent(new Event('input'));
-            window.validateForm();
-        });
-    }
-
-    if(subCategory) {
-        subCategory.addEventListener('change', function() {
-            const premiumWarning = document.getElementById('premiumWarning');
-            const submitBtn = document.getElementById('submitBtn');
-            if (window.premiumCategories.includes(this.value)) {
-                if(premiumWarning) premiumWarning.classList.remove('hidden');
-                if(submitBtn) {
-                    submitBtn.innerHTML = '<i class="fa-solid fa-crown"></i> Subscribe to Post';
-                    submitBtn.style.background = 'linear-gradient(45deg, #f1c40f, #e67e22)';
-                }
-            } else {
-                if(premiumWarning) premiumWarning.classList.add('hidden');
-                if(submitBtn) {
-                    submitBtn.innerHTML = window.editingGroupId ? 'Update Group' : 'Post Group';
-                    submitBtn.style.background = ''; 
-                }
-            }
-            window.validateForm();
-        });
-    }
-
-    if(subLink) {
-        subLink.addEventListener('input', debounce(() => {
-            const url = subLink.value.trim();
-            const linkWarning = document.getElementById('linkWarning');
-            const linkSuccess = document.getElementById('linkSuccess');
-            
-            if (url === "") { 
-                if(linkWarning) linkWarning.classList.add('hidden'); 
-                if(linkSuccess) linkSuccess.classList.add('hidden'); 
-            } else if (subPlatform && subPlatform.value && linkPatterns[subPlatform.value] && linkPatterns[subPlatform.value].test(url)) {
-                if(linkSuccess) linkSuccess.classList.remove('hidden'); 
-                if(linkWarning) linkWarning.classList.add('hidden');
-            } else {
-                if(linkWarning) linkWarning.classList.remove('hidden'); 
-                if(linkSuccess) linkSuccess.classList.add('hidden');
-            }
-            window.validateForm();
-        }, 400));
-    }
-
-    if(subDescription) {
-        subDescription.addEventListener('input', debounce(() => {
-            const text = subDescription.value.trim();
-            const hasEmojis = emojiRegex.test(text);
-            const words = text.split(/\s+/).filter(word => word.length > 1);
-            const descWarning = document.getElementById('descWarning');
-            const descSuccess = document.getElementById('descSuccess');
-            
-            if (text === "") {
-                if(descWarning) descWarning.classList.add('hidden'); 
-                if(descSuccess) descSuccess.classList.add('hidden');
-            } else if (hasEmojis || text.length < 40 || words.length < 5) {
-                if(descWarning) descWarning.classList.remove('hidden'); 
-                if(descSuccess) descSuccess.classList.add('hidden');
-            } else {
-                if(descSuccess) descSuccess.classList.remove('hidden'); 
-                if(descWarning) descWarning.classList.add('hidden');
-            }
-            window.validateForm();
-        }, 400));
-    }
+window.switchView = (viewName, el) => {
+    document.querySelectorAll(".dashboard-view").forEach(v => v.classList.add("hidden"));
+    document.getElementById(`view-${viewName}`)?.classList.remove("hidden");
+    document.querySelectorAll(".nav-link").forEach(l => l.classList.remove("active"));
+    if (el) el.classList.add("active");
     
-    if(subName) subName.addEventListener('input', window.validateForm);
+    // Close mobile menu safely
+    const menu = document.getElementById("dashboardMenu");
+    if (menu) {
+        menu.classList.remove("active");
+        menu.classList.remove("show");
+    }
+};
+
+window.openLogoutModal = () => document.getElementById("logoutModal")?.classList.remove("hidden");
+window.closeModals = () => document.querySelectorAll(".overlay:not(#authGate)").forEach(m => m.classList.add("hidden"));
+
+// --- Form Validation Listeners ---
+function setupFormListeners() {
+    const subCountry = document.getElementById("subCountry");
+    const subCity = document.getElementById("subCity");
+    const subPlatform = document.getElementById("subPlatform");
+    const subCategory = document.getElementById("subCategory");
+    const subLink = document.getElementById("subLink");
+    const subDescription = document.getElementById("subDescription");
+    const subName = document.getElementById("subName");
+
+    // Dynamic Cities
+    subCountry?.addEventListener("change", function() {
+        if(subCity) {
+            subCity.innerHTML = '<option value="">Select City</option>';
+            if(locations[this.value]) locations[this.value].forEach(city => subCity.appendChild(new Option(city, city)));
+        }
+        window.validateForm();
+    });
+
+    // Platform Unlocker
+    subPlatform?.addEventListener("change", function() {
+        const isEnabled = this.value !== "";
+        if(subLink) subLink.disabled = !isEnabled;
+        if(subDescription) subDescription.disabled = !isEnabled;
+        if(subLink) subLink.dispatchEvent(new Event('input'));
+        window.validateForm();
+    });
+
+    // Premium Warning
+    subCategory?.addEventListener("change", function() {
+        const premiumWarning = document.getElementById("premiumWarning");
+        const btn = document.getElementById("submitBtn");
+        
+        if (window.premiumCategories.includes(this.value)) {
+            premiumWarning?.classList.remove("hidden");
+            if(btn) btn.innerHTML = '<i class="fa-solid fa-crown"></i> Subscribe to Post';
+        } else {
+            premiumWarning?.classList.add("hidden");
+            if(btn) btn.innerText = window.editingGroupId ? "Update Group" : "Post Group";
+        }
+        window.validateForm();
+    });
+
+    // Link Validation (Checks specific formats like Discord, WA, etc.)
+    subLink?.addEventListener("input", debounce(() => {
+        const url = subLink.value.trim();
+        const platform = subPlatform?.value;
+        const linkWarning = document.getElementById("linkWarning");
+        const linkSuccess = document.getElementById("linkSuccess");
+
+        if (url === "") {
+            linkWarning?.classList.add("hidden"); linkSuccess?.classList.add("hidden");
+        } else if (platform && linkPatterns[platform] && linkPatterns[platform].test(url)) {
+            linkSuccess?.classList.remove("hidden"); linkWarning?.classList.add("hidden");
+        } else {
+            linkWarning?.classList.remove("hidden"); linkSuccess?.classList.add("hidden");
+        }
+        window.validateForm();
+    }, 400));
+
+    // Description Validation (Blocks Emojis & Gibberish)
+    subDescription?.addEventListener("input", debounce(() => {
+        const text = subDescription.value.trim();
+        const hasEmojis = emojiRegex.test(text);
+        const words = text.split(/\s+/).filter(w => w.length > 1);
+        const descWarning = document.getElementById("descWarning");
+        const descSuccess = document.getElementById("descSuccess");
+
+        if (text === "") {
+            descWarning?.classList.add("hidden"); descSuccess?.classList.add("hidden");
+        } else if (hasEmojis || text.length < 40 || words.length < 5) {
+            descWarning?.classList.remove("hidden"); descSuccess?.classList.add("hidden");
+        } else {
+            descSuccess?.classList.remove("hidden"); descWarning?.classList.add("hidden");
+        }
+        window.validateForm();
+    }, 400));
+    
+    // Check form dynamically on name type
+    subName?.addEventListener("input", window.validateForm);
 }
 
+// Master Validation: Checks if the Submit Button should be unlocked
 window.validateForm = function() {
-    const subName = document.getElementById('subName');
-    const subPlatform = document.getElementById('subPlatform');
-    const subCategory = document.getElementById('subCategory');
-    const subCountry = document.getElementById('subCountry');
-    const subCity = document.getElementById('subCity');
-    const linkSuccess = document.getElementById('linkSuccess');
-    const descSuccess = document.getElementById('descSuccess');
-    const submitBtn = document.getElementById('submitBtn');
+    const btn = document.getElementById("submitBtn");
+    if(!btn) return;
 
-    if(!submitBtn) return;
+    const subName = document.getElementById("subName");
+    const subPlatform = document.getElementById("subPlatform");
+    const subCategory = document.getElementById("subCategory");
+    const subCountry = document.getElementById("subCountry");
+    const subCity = document.getElementById("subCity");
 
     const isNameSet = subName && subName.value.trim() !== "";
     const isPlatformSet = subPlatform && subPlatform.value !== "";
@@ -176,86 +176,23 @@ window.validateForm = function() {
     const isCountrySet = subCountry && subCountry.value !== "";
     const isCitySet = subCity && subCity.value !== "";
     
-    const isLinkValid = linkSuccess ? !linkSuccess.classList.contains('hidden') : true;
-    const isDescValid = descSuccess ? !descSuccess.classList.contains('hidden') : true;
+    const linkSuccess = document.getElementById("linkSuccess");
+    const descSuccess = document.getElementById("descSuccess");
+    
+    // Safely reads the visual HTML warnings to decide if data is valid
+    const isLinkValid = linkSuccess ? !linkSuccess.classList.contains("hidden") : true;
+    const isDescValid = descSuccess ? !descSuccess.classList.contains("hidden") : true;
 
     if (isNameSet && isPlatformSet && isCategorySet && isCountrySet && isCitySet && isLinkValid && isDescValid) {
-        submitBtn.disabled = false;
-        submitBtn.classList.remove('disabled-btn');
+        btn.disabled = false;
+        btn.classList.remove("disabled-btn");
     } else {
-        submitBtn.disabled = true;
-        submitBtn.classList.add('disabled-btn');
+        btn.disabled = true;
+        btn.classList.add("disabled-btn");
     }
-};
+}
 
-// --- Views & Modals ---
-window.switchView = function(viewName, event) {
-    if(event) event.preventDefault();
-    document.querySelectorAll('.dashboard-view').forEach(view => {
-        view.classList.remove('active');
-        view.classList.add('hidden');
-    });
-    document.querySelectorAll('.side-menu .nav-link').forEach(link => link.classList.remove('active'));
-    
-    const target = document.getElementById(`view-${viewName}`);
-    if(target) {
-        target.classList.add('active');
-        target.classList.remove('hidden');
-    }
-    
-    if(event && event.currentTarget) event.currentTarget.classList.add('active');
-    
-    if(window.innerWidth < 768) {
-        const menu = document.getElementById('dashboardMenu');
-        if(menu) {
-            menu.classList.remove('active');
-            menu.classList.remove('show');
-            menu.classList.add('hidden');
-        }
-    }
-};
-
-window.openPaymentModal = function(planName, price) {
-    const iframe = document.getElementById('gatewayIframe');
-    if(iframe) iframe.src = `https://example.com/checkout?plan=${planName}&amount=${price}`;
-    document.getElementById('paymentModal')?.classList.remove('hidden');
-};
-
-window.openLogoutModal = function() {
-    document.getElementById('logoutModal')?.classList.remove('hidden');
-    const menu = document.getElementById('dashboardMenu');
-    if(menu) {
-        menu.classList.remove('active');
-        menu.classList.remove('show');
-    }
-};
-
-window.closeModals = function() {
-    document.querySelectorAll('.overlay').forEach(modal => {
-        if (modal.id !== 'authGate') modal.classList.add('hidden');
-    });
-    const iframe = document.getElementById('gatewayIframe');
-    if(iframe) iframe.src = 'about:blank';
-};
-
-window.toggleDashboardMenu = function() { 
-    const menu = document.getElementById('dashboardMenu');
-    if(menu) {
-        menu.classList.toggle('active');
-        menu.classList.toggle('show');
-        menu.classList.toggle('hidden');
-    }
-};
-
-window.toggleProfilePopup = function() { 
-    document.getElementById('profilePopup')?.classList.toggle('hidden'); 
-};
-
-// Close modals when clicking outside
-document.addEventListener('click', (e) => {
-    if (e.target.classList.contains('overlay') && e.target.id !== 'authGate') window.closeModals();
-});
-
+// Utility
 function debounce(func, wait) {
     let timeout;
     return function(...args) {
@@ -263,3 +200,6 @@ function debounce(func, wait) {
         timeout = setTimeout(() => func.apply(this, args), wait);
     };
 }
+
+// Start UI
+document.addEventListener("DOMContentLoaded", initUI);
