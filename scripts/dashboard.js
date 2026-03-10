@@ -11,7 +11,34 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 console.log("GroupNate dashboard loaded");
 
 // ===============================
-// 2. DOM ELEMENTS
+// 2. STATIC DATA & RULES
+// ===============================
+
+const categories = ["Art & Design", "Automotive", "Business", "Career", "Crypto", "Dating", "Education", "Entertainment", "Fashion", "Fitness", "Food", "Gaming", "Health", "Hobbies", "Investments", "Jobs", "Lifestyle", "Memes", "Music", "News", "Pets", "Politics", "Real Estate", "Science", "Shopping", "Sports", "Technology", "Travel", "Writing"];
+const premiumCategories = ["Crypto", "Real Estate", "Investments"];
+const locations = {
+    "USA": ["New York", "Los Angeles", "Chicago", "Houston", "San Francisco"],
+    "India": ["Mumbai", "Delhi", "Bangalore", "Hyderabad"],
+    "Nigeria": ["Lagos", "Abuja", "Kano", "Ibadan"],
+    "UK": ["London", "Manchester", "Birmingham"],
+    "Brazil": ["Sao Paulo", "Rio de Janeiro", "Brasilia"],
+    "Kenya": ["Nairobi", "Mombasa", "Kisumu"],
+    "Global": ["Any / Not Applicable"]
+};
+
+const linkPatterns = {
+    discord: /^(https?:\/\/)?(discord\.gg|discord\.com\/invite)\/[a-zA-Z0-9-]+$/i,
+    telegram: /^(https?:\/\/)?(t\.me|telegram\.me)\/[a-zA-Z0-9_]+$/i,
+    whatsapp: /^(https?:\/\/)?chat\.whatsapp\.com\/[a-zA-Z0-9]+$/i,
+    facebook: /^(https?:\/\/)?(www\.)?facebook\.com\/groups\/[a-zA-Z0-9_.-]+\/?$/i,
+    reddit: /^(https?:\/\/)?(www\.)?reddit\.com\/r\/[a-zA-Z0-9_]+\/?$/i,
+    instagram: /^(https?:\/\/)?(ig\.me\/j\/|www\.instagram\.com\/[a-zA-Z0-9_.]+\/?)$/i
+};
+
+const emojiRegex = /([\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF])/g;
+
+// ===============================
+// 3. DOM ELEMENTS
 // ===============================
 
 const authGate = document.getElementById("authGate");
@@ -20,14 +47,27 @@ const dashboardApp = document.getElementById("dashboardApp");
 const authForm = document.getElementById("authForm");
 const authTitle = document.getElementById("authTitle");
 const authSubmitBtn = document.getElementById("authSubmitBtn");
+const authToggleText = document.getElementById('authToggleText');
 
 const userAvatar = document.getElementById("userAvatar");
 const profileEmail = document.getElementById("profileEmail");
 const activeGroupCount = document.getElementById("activeGroupCount");
 
+const subName = document.getElementById("subName");
+const subPlatform = document.getElementById("subPlatform");
+const subCategory = document.getElementById("subCategory");
+const subCountry = document.getElementById("subCountry");
+const subCity = document.getElementById("subCity");
+const subLink = document.getElementById("subLink");
+const subDescription = document.getElementById("subDescription");
 const submitForm = document.getElementById("submitGroupForm");
 const submitBtn = document.getElementById("submitBtn");
 
+const descWarning = document.getElementById('descWarning');
+const descSuccess = document.getElementById('descSuccess');
+const linkWarning = document.getElementById('linkWarning');
+const linkSuccess = document.getElementById('linkSuccess');
+const premiumWarning = document.getElementById('premiumWarning');
 const myGroupsList = document.getElementById("myGroupsList");
 
 let currentUser = null;
@@ -35,23 +75,17 @@ let editingGroupId = null;
 let myPostedGroups = [];
 
 // ===============================
-// 3. AUTH STATE HANDLER
+// 4. AUTH STATE HANDLER
 // ===============================
 
 supabase.auth.onAuthStateChange((event, session) => {
-    console.log("Auth event:", event);
-
     if (session?.user) {
         currentUser = session.user;
         authGate.classList.add("hidden");
         dashboardApp.classList.remove("hidden");
 
-        if (userAvatar) {
-            userAvatar.innerText = currentUser.email?.charAt(0)?.toUpperCase() || "U";
-        }
-        if (profileEmail) {
-            profileEmail.innerText = currentUser.email || "";
-        }
+        if (userAvatar) userAvatar.innerText = currentUser.email?.charAt(0)?.toUpperCase() || "U";
+        if (profileEmail) profileEmail.innerText = currentUser.email || "";
         
         fetchMyGroups();
     } else {
@@ -62,56 +96,57 @@ supabase.auth.onAuthStateChange((event, session) => {
 });
 
 // ===============================
-// 4. INITIAL SESSION CHECK
+// 5. INITIALIZATION
 // ===============================
 
 async function initDashboard() {
-    console.log("Checking existing session...");
-    const { data: { session } } = await supabase.auth.getSession();
+    // Populate Select Dropdowns
+    subCategory.innerHTML = '<option value="">Select Category</option>';
+    categories.forEach(cat => subCategory.appendChild(new Option(cat, cat)));
+    
+    subCountry.innerHTML = '<option value="">Select Country</option>';
+    Object.keys(locations).forEach(country => subCountry.appendChild(new Option(country, country)));
+    
+    setupFormListeners();
 
+    const { data: { session } } = await supabase.auth.getSession();
     if (session?.user) {
         currentUser = session.user;
         authGate.classList.add("hidden");
         dashboardApp.classList.remove("hidden");
-
-        if (userAvatar) {
-            userAvatar.innerText = currentUser.email?.charAt(0)?.toUpperCase() || "U";
-        }
-        if (profileEmail) {
-            profileEmail.innerText = currentUser.email;
-        }
-
+        if (userAvatar) userAvatar.innerText = currentUser.email?.charAt(0)?.toUpperCase() || "U";
+        if (profileEmail) profileEmail.innerText = currentUser.email;
         fetchMyGroups();
     }
 }
 
-initDashboard();
-
 // ===============================
-// 5. AUTH FORM HANDLING
+// 6. AUTH FORM HANDLING
 // ===============================
 
-window.toggleAuthMode = function () {
-    if (authTitle.innerText === "Welcome Back") {
-        authTitle.innerText = "Create Account";
-        authSubmitBtn.innerText = "Sign Up";
+window.toggleAuthMode = function() {
+    if (authTitle.innerText === 'Welcome Back') {
+        authTitle.innerText = 'Create Account';
+        authSubmitBtn.innerText = 'Sign Up';
+        authToggleText.innerHTML = 'Already have an account? <span style="color: var(--accent); cursor: pointer; font-weight: bold;" onclick="toggleAuthMode()">Log In</span>';
     } else {
-        authTitle.innerText = "Welcome Back";
-        authSubmitBtn.innerText = "Log In";
+        authTitle.innerText = 'Welcome Back';
+        authSubmitBtn.innerText = 'Log In';
+        authToggleText.innerHTML = 'Need an account? <span style="color: var(--accent); cursor: pointer; font-weight: bold;" onclick="toggleAuthMode()">Sign Up</span>';
     }
 };
 
-// Listen for the form submission natively to prevent refresh
 if (authForm) {
     authForm.addEventListener("submit", async function(e) {
-        e.preventDefault(); // STOPS THE PAGE REFRESH
+        e.preventDefault(); 
         
         const email = document.getElementById("authEmail").value;
         const password = document.getElementById("authPassword").value;
         const isLogin = authTitle.innerText === "Welcome Back";
 
+        const originalText = authSubmitBtn.innerText;
         authSubmitBtn.disabled = true;
-        authSubmitBtn.innerText = "Processing...";
+        authSubmitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing...';
 
         let error;
 
@@ -122,230 +157,353 @@ if (authForm) {
             const result = await supabase.auth.signUp({ email, password });
             error = result.error;
             if (!error) {
-                alert("Check your email to confirm signup.");
+                alert("Success! Check your email for the confirmation link.");
+                toggleAuthMode();
             }
         }
 
-        if (error) {
-            alert(error.message);
-        }
+        if (error) alert("Error: " + error.message);
 
         authSubmitBtn.disabled = false;
-        authSubmitBtn.innerText = isLogin ? "Log In" : "Sign Up";
+        authSubmitBtn.innerText = originalText;
     });
 }
 
 // ===============================
-// 6. UI INTERACTION FUNCTIONS
+// 7. FORM VALIDATIONS
 // ===============================
 
-window.toggleDashboardMenu = function() {
-    const menu = document.getElementById("dashboardMenu");
-    menu.classList.toggle("show");
-    // Also toggle hidden if that's how your CSS handles it
-    menu.classList.toggle("hidden"); 
-};
+function setupFormListeners() {
+    subCountry.addEventListener('change', function() {
+        subCity.innerHTML = '<option value="">Select City</option>';
+        if(locations[this.value]) locations[this.value].forEach(city => subCity.appendChild(new Option(city, city)));
+    });
 
-window.toggleProfilePopup = function() {
-    const popup = document.getElementById("profilePopup");
-    popup.classList.toggle("hidden");
-};
+    subPlatform.addEventListener('change', function() {
+        const isEnabled = this.value !== "";
+        subLink.disabled = !isEnabled;
+        subDescription.disabled = !isEnabled;
+        if(subLink.value) subLink.dispatchEvent(new Event('input'));
+        validateForm();
+    });
 
-window.switchView = function(viewName, clickedElement) {
-    // 1. Hide all views
-    const views = document.querySelectorAll(".dashboard-view");
-    views.forEach(view => view.classList.add("hidden"));
+    subCategory.addEventListener('change', function() {
+        if (premiumCategories.includes(this.value)) {
+            premiumWarning.classList.remove('hidden');
+            submitBtn.innerHTML = '<i class="fa-solid fa-crown"></i> Subscribe to Post';
+            submitBtn.style.background = 'linear-gradient(45deg, #f1c40f, #e67e22)';
+        } else {
+            premiumWarning.classList.add('hidden');
+            submitBtn.innerHTML = editingGroupId ? 'Update Group' : 'Post Group';
+            submitBtn.style.background = ''; 
+        }
+        validateForm();
+    });
+
+    subLink.addEventListener('input', debounce(() => {
+        const url = subLink.value.trim();
+        if (url === "") { 
+            linkWarning.classList.add('hidden'); linkSuccess.classList.add('hidden'); 
+        } else if (subPlatform.value && linkPatterns[subPlatform.value].test(url)) {
+            linkSuccess.classList.remove('hidden'); linkWarning.classList.add('hidden');
+        } else {
+            linkWarning.classList.remove('hidden'); linkSuccess.classList.add('hidden');
+        }
+        validateForm();
+    }, 400));
+
+    subDescription.addEventListener('input', debounce(() => {
+        const text = subDescription.value.trim();
+        const hasEmojis = emojiRegex.test(text);
+        const words = text.split(/\s+/).filter(word => word.length > 1);
+        
+        if (text === "") {
+            descWarning.classList.add('hidden'); descSuccess.classList.add('hidden');
+        } else if (hasEmojis || text.length < 40 || words.length < 5) {
+            descWarning.classList.remove('hidden'); descSuccess.classList.add('hidden');
+        } else {
+            descSuccess.classList.remove('hidden'); descWarning.classList.add('hidden');
+        }
+        validateForm();
+    }, 400));
     
-    // 2. Show the target view
-    const targetView = document.getElementById(`view-${viewName}`);
-    if (targetView) targetView.classList.remove("hidden");
+    if(subName) subName.addEventListener('input', validateForm);
+}
 
-    // 3. Update active state on sidebar links
-    const links = document.querySelectorAll(".side-menu .nav-link");
-    links.forEach(link => link.classList.remove("active"));
-    if (clickedElement) clickedElement.classList.add("active");
+function validateForm() {
+    const isNameSet = subName && subName.value.trim() !== "";
+    const isPlatformSet = subPlatform.value !== "";
+    const isCategorySet = subCategory.value !== "";
+    const isCountrySet = subCountry.value !== "";
+    const isCitySet = subCity.value !== "";
+    const isLinkValid = !linkSuccess.classList.contains('hidden');
+    const isDescValid = !descSuccess.classList.contains('hidden');
 
-    // Close menu on mobile after clicking
-    document.getElementById("dashboardMenu").classList.add("hidden");
-    document.getElementById("dashboardMenu").classList.remove("show");
-};
-
-window.openLogoutModal = function() {
-    document.getElementById("logoutModal").classList.remove("hidden");
-};
-
-window.openPaymentModal = function(planName, price) {
-    document.getElementById("paymentModal").classList.remove("hidden");
-    console.log(`Preparing checkout for ${planName} at $${price}`);
-};
-
-window.closeModals = function() {
-    document.getElementById("logoutModal").classList.add("hidden");
-    document.getElementById("paymentModal").classList.add("hidden");
-};
+    if (isNameSet && isPlatformSet && isCategorySet && isCountrySet && isCitySet && isLinkValid && isDescValid) {
+        submitBtn.disabled = false;
+        submitBtn.classList.remove('disabled-btn');
+    } else {
+        submitBtn.disabled = true;
+        submitBtn.classList.add('disabled-btn');
+    }
+}
 
 // ===============================
-// 7. FETCH USER GROUPS
+// 8. CRUD OPERATIONS
 // ===============================
 
 async function fetchMyGroups() {
     if (!currentUser) return;
 
     const { data, error } = await supabase
-        .from("communities")
-        .select("*")
-        .eq("user_id", currentUser.id)
-        .order("created_at", { ascending: false });
+        .from('communities')
+        .select('*')
+        .eq('user_id', currentUser.id)
+        .order('created_at', { ascending: false });
 
-    if (error) {
-        console.error(error);
-        return;
+    if (!error) {
+        myPostedGroups = data || [];
+        renderMyGroups();
+        if(activeGroupCount) activeGroupCount.innerText = myPostedGroups.length;
     }
-
-    myPostedGroups = data || [];
-    
-    // Update stat in profile popup
-    if(activeGroupCount) {
-        activeGroupCount.innerText = myPostedGroups.length;
-    }
-
-    renderMyGroups();
 }
 
-// ===============================
-// 8. SUBMIT COMMUNITY
-// ===============================
+if(submitForm) {
+    submitForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        if (!currentUser) {
+            alert("You must be logged in.");
+            return;
+        }
 
-submitForm?.addEventListener("submit", async (e) => {
-    e.preventDefault();
+        const originalBtnText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+        submitBtn.disabled = true;
 
-    if (!currentUser) {
-        alert("You must be logged in.");
-        return;
-    }
+        let determinedType = 'Group';
+        if (subPlatform.value === 'discord') determinedType = 'Server';
+        if (subPlatform.value === 'reddit') determinedType = 'Community';
+        if (subPlatform.value === 'instagram' || subPlatform.value === 'telegram') determinedType = 'Channel';
 
-    submitBtn.disabled = true;
-    submitBtn.innerText = "Saving...";
+        const groupData = {
+            user_id: currentUser.id,
+            name: subName.value.trim(),
+            platform: subPlatform.value,
+            type: determinedType,
+            category: subCategory.value,
+            country: subCountry.value,
+            city: subCity.value,
+            link: subLink.value.trim(),
+            description: subDescription.value.trim(),
+            is_premium: premiumCategories.includes(subCategory.value),
+            status: 'pending' 
+        };
 
-    const groupData = {
-        user_id: currentUser.id,
-        name: document.getElementById("subName").value.trim(),
-        platform: document.getElementById("subPlatform").value,
-        category: document.getElementById("subCategory").value,
-        country: document.getElementById("subCountry").value,
-        city: document.getElementById("subCity").value,
-        link: document.getElementById("subLink").value.trim(),
-        description: document.getElementById("subDescription").value.trim(),
-        status: "pending"
-    };
+        let resultError;
 
-    let error;
+        if (editingGroupId) {
+            const { error } = await supabase.from('communities').update(groupData).eq('id', editingGroupId).eq('user_id', currentUser.id);
+            resultError = error;
+        } else {
+            const { error } = await supabase.from('communities').insert([groupData]);
+            resultError = error;
+        }
 
-    if (editingGroupId) {
-        const result = await supabase
-            .from("communities")
-            .update(groupData)
-            .eq("id", editingGroupId);
-        error = result.error;
-    } else {
-        const result = await supabase
-            .from("communities")
-            .insert([groupData]);
-        error = result.error;
-    }
+        if (resultError) {
+            alert("Error saving community: " + resultError.message);
+            submitBtn.innerHTML = originalBtnText;
+            submitBtn.disabled = false;
+            return;
+        }
 
-    if (error) {
-        alert("Error: " + error.message);
-        console.error(error);
-    } else {
-        alert("Community submitted!");
+        alert(editingGroupId ? "Community Updated Successfully!" : "Community Submitted for Review!");
+        
         submitForm.reset();
+        subLink.disabled = true;
+        subDescription.disabled = true;
+        linkSuccess.classList.add('hidden');
+        descSuccess.classList.add('hidden');
         editingGroupId = null;
+        submitBtn.innerHTML = 'Post Group';
+        validateForm();
+        
         fetchMyGroups();
-    }
-
-    submitBtn.disabled = false;
-    submitBtn.innerText = "Post Group";
-});
-
-// ===============================
-// 9. RENDER USER GROUPS
-// ===============================
+    });
+}
 
 function renderMyGroups() {
     if (!myGroupsList) return;
+    myGroupsList.innerHTML = '';
 
     if (myPostedGroups.length === 0) {
-        myGroupsList.innerHTML = "<p style='text-align:center;color:gray;padding: 20px;'>No groups yet.</p>";
+        myGroupsList.innerHTML = '<p style="color:var(--text-muted); text-align:center;">You haven\'t posted any communities yet.</p>';
         return;
     }
 
-    myGroupsList.innerHTML = myPostedGroups.map(group => `
-        <div class="ledger-item glass-panel" style="margin-bottom: 15px; padding: 15px; display: flex; justify-content: space-between; align-items: center;">
-            <div>
-                <strong style="font-size: 1.1rem; color: var(--text-light);">${group.name}</strong>
-                <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 5px;">
-                    <i class="fa-brands fa-${group.platform.toLowerCase()}"></i> ${group.platform} | ${group.category}
-                </p>
+    myPostedGroups.forEach(group => {
+        let statusHtml = '';
+        if (group.status === 'live') statusHtml = '<div class="status-badge status-live" style="color: #2ed573;"><i class="fa-solid fa-check"></i> Live</div>';
+        if (group.status === 'pending') statusHtml = '<div class="status-badge status-pending" style="color: #ffa502;"><i class="fa-solid fa-clock"></i> Pending</div>';
+        if (group.status === 'expired') statusHtml = '<div class="status-badge status-expired" style="color: #ff4757;"><i class="fa-solid fa-triangle-exclamation"></i> Expired</div>';
+        if (group.status === 'rejected') statusHtml = '<div class="status-badge status-rejected" style="color: #ff4757;"><i class="fa-solid fa-ban"></i> Rejected</div>';
+
+        const item = document.createElement('div');
+        item.className = 'ledger-item glass-panel';
+        item.style.marginBottom = '15px';
+        item.style.padding = '15px';
+        
+        item.innerHTML = `
+            <div style="display: flex; justify-content: space-between; width: 100%; align-items: flex-start; margin-bottom: 10px;">
+                <div class="ledger-info">
+                    <h4 style="margin: 0; color: var(--text-light);">${group.name}</h4>
+                    <p style="margin: 5px 0 0 0; color: var(--text-muted); font-size: 0.9rem;">
+                        <i class="fa-brands fa-${group.platform.toLowerCase()}"></i> <span style="text-transform: capitalize;">${group.platform}</span> | ${group.category}
+                    </p>
+                </div>
+                ${statusHtml}
             </div>
-            <div style="display: flex; gap: 10px;">
-                <button class="nav-btn" onclick="editGroup('${group.id}')">Edit</button>
-                <button class="nav-btn" style="color: #ff4757; border-color: rgba(255, 71, 87, 0.3);" onclick="deleteGroup('${group.id}')">Delete</button>
+            <div class="ledger-actions" style="display: flex; gap: 10px;">
+                <button class="nav-btn edit-btn" onclick="editGroup(${group.id})"><i class="fa-solid fa-pen"></i> Edit</button>
+                <button class="nav-btn delete-btn" style="color: #ff4757; border-color: rgba(255, 71, 87, 0.3);" onclick="deleteGroup(${group.id})"><i class="fa-solid fa-trash"></i> Delete</button>
             </div>
-        </div>
-    `).join("");
+        `;
+        myGroupsList.appendChild(item);
+    });
+}
+
+window.deleteGroup = async function(id) {
+    if (confirm("Are you sure you want to delete this community?")) {
+        const previousGroups = [...myPostedGroups];
+        myPostedGroups = myPostedGroups.filter(g => g.id !== id);
+        renderMyGroups();
+
+        const { error } = await supabase.from('communities').delete().eq('id', id).eq('user_id', currentUser.id);
+
+        if (error) {
+            alert("Failed to delete. Please try again.");
+            myPostedGroups = previousGroups; 
+            renderMyGroups();
+        } else {
+            if(activeGroupCount) activeGroupCount.innerText = myPostedGroups.length;
+        }
+    }
+};
+
+window.editGroup = function(id) {
+    const group = myPostedGroups.find(g => g.id === id);
+    if (!group) return;
+
+    editingGroupId = group.id;
+
+    if(subName) subName.value = group.name;
+    subPlatform.value = group.platform;
+    subCategory.value = group.category;
+    subCountry.value = group.country;
+    
+    // Dispatch change so city list populates before assigning city
+    subCountry.dispatchEvent(new Event('change'));
+    subCity.value = group.city;
+    
+    subLink.value = group.link;
+    subLink.disabled = false;
+    subDescription.value = group.description;
+    subDescription.disabled = false;
+
+    // Trigger validation logic
+    subLink.dispatchEvent(new Event('input'));
+    subDescription.dispatchEvent(new Event('input'));
+    subCategory.dispatchEvent(new Event('change'));
+    if(subName) subName.dispatchEvent(new Event('input'));
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
+// ===============================
+// 9. UI & MODAL HELPERS
+// ===============================
+
+window.switchView = function(viewName, element) {
+    if(event) event.preventDefault();
+    document.querySelectorAll('.dashboard-view').forEach(view => {
+        // Handle both standard class-toggling methods depending on CSS setup
+        view.classList.remove('active');
+        view.classList.add('hidden');
+    });
+    
+    document.querySelectorAll('.side-menu .nav-link').forEach(link => link.classList.remove('active'));
+    
+    const target = document.getElementById(`view-${viewName}`);
+    if(target) {
+        target.classList.add('active');
+        target.classList.remove('hidden');
+    }
+    
+    if(element) element.classList.add('active');
+    
+    // Close mobile menu if open
+    const menu = document.getElementById('dashboardMenu');
+    if(menu && menu.classList.contains('active')) menu.classList.remove('active');
+    if(menu && menu.classList.contains('show')) menu.classList.remove('show');
+};
+
+window.openPaymentModal = function(planName, price) {
+    // You will need to replace this URL with your actual payment gateway link later
+    document.getElementById('gatewayIframe').src = `about:blank`; 
+    document.getElementById('paymentModal').classList.remove('hidden');
+};
+
+window.openLogoutModal = function() {
+    document.getElementById('logoutModal').classList.remove('hidden');
+    const menu = document.getElementById('dashboardMenu');
+    if(menu) {
+        menu.classList.remove('active');
+        menu.classList.remove('show');
+    }
+};
+
+window.closeModals = function() {
+    document.querySelectorAll('.overlay').forEach(modal => {
+        if (modal.id !== 'authGate') modal.classList.add('hidden');
+    });
+    const iframe = document.getElementById('gatewayIframe');
+    if(iframe) iframe.src = 'about:blank';
+};
+
+window.confirmLogout = async function() {
+    const { error } = await supabase.auth.signOut();
+    if (error) alert("Error logging out: " + error.message);
+    else window.location.reload();
+};
+
+window.toggleDashboardMenu = function() { 
+    const menu = document.getElementById('dashboardMenu');
+    if(menu) {
+        menu.classList.toggle('active'); 
+        menu.classList.toggle('show'); 
+    }
+};
+
+window.toggleProfilePopup = function() { 
+    const popup = document.getElementById('profilePopup');
+    if(popup) popup.classList.toggle('hidden'); 
+};
+
+// Close modals when clicking the background overlay
+document.addEventListener('click', (e) => {
+    if (e.target.classList.contains('overlay') && e.target.id !== 'authGate') closeModals();
+});
+
+// Debounce helper for inputs
+function debounce(func, wait) {
+    let timeout;
+    return function(...args) {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(this, args), wait);
+    };
 }
 
 // ===============================
-// 10. DELETE GROUP
+// 10. START APP
 // ===============================
-
-window.deleteGroup = async function (id) {
-    if (!confirm("Are you sure you want to delete this group?")) return;
-
-    const { error } = await supabase
-        .from("communities")
-        .delete()
-        .eq("id", id);
-
-    if (error) {
-        alert(error.message);
-    } else {
-        fetchMyGroups();
-    }
-};
-
-// ===============================
-// 11. EDIT GROUP
-// ===============================
-
-window.editGroup = function (id) {
-    const group = myPostedGroups.find(g => g.id == id);
-    if (!group) return;
-
-    editingGroupId = id;
-
-    document.getElementById("subName").value = group.name;
-    document.getElementById("subPlatform").value = group.platform;
-    document.getElementById("subCategory").value = group.category;
-    document.getElementById("subCountry").value = group.country;
-    document.getElementById("subCity").value = group.city;
-    document.getElementById("subLink").value = group.link;
-    document.getElementById("subDescription").value = group.description;
-
-    submitBtn.innerText = "Update Group";
-    window.scrollTo({ top: 0, behavior: "smooth" });
-};
-
-// ===============================
-// 12. LOGOUT
-// ===============================
-
-window.confirmLogout = async function () {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-        alert(error.message);
-    } else {
-        location.reload();
-    }
-};
+initDashboard();
