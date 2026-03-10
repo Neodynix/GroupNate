@@ -1,5 +1,5 @@
 // ==========================================
-// ui-validation.js
+// dashboard-ui.js
 // Handles Modals, Menus, and Form Checking
 // ==========================================
 
@@ -83,15 +83,11 @@ window.toggleProfilePopup = () => {
 };
 
 window.switchView = (viewName, el) => {
-    // Hide all views, show target
     document.querySelectorAll(".dashboard-view").forEach(v => v.classList.add("hidden"));
     document.getElementById(`view-${viewName}`)?.classList.remove("hidden");
-    
-    // Update active state on sidebar
     document.querySelectorAll(".nav-link").forEach(l => l.classList.remove("active"));
     if (el) el.classList.add("active");
     
-    // Close mobile menu
     const menu = document.getElementById("dashboardMenu");
     if (menu) {
         menu.classList.remove("active");
@@ -103,7 +99,7 @@ window.openLogoutModal = () => document.getElementById("logoutModal")?.classList
 window.closeModals = () => document.querySelectorAll(".overlay:not(#authGate)").forEach(m => m.classList.add("hidden"));
 window.openPaymentModal = function(planName, price) {
     const iframe = document.getElementById('gatewayIframe');
-    if(iframe) iframe.src = `about:blank`; // Add your payment URL here later
+    if(iframe) iframe.src = `about:blank`; // Payment URL here
     document.getElementById('paymentModal')?.classList.remove('hidden');
 };
 
@@ -152,7 +148,7 @@ function setupFormListeners() {
         window.validateForm();
     });
 
-    // Name Validation (Spam & Length)
+    // Name Validation
     subName?.addEventListener("input", debounce(() => {
         const text = subName.value.trim();
         const hasEmojis = emojiRegex.test(text);
@@ -170,7 +166,7 @@ function setupFormListeners() {
         window.validateForm();
     }, 400));
 
-    // Link Validation 
+    // Link Validation
     subLink?.addEventListener("input", debounce(() => {
         const url = subLink.value.trim();
         const platform = subPlatform?.value;
@@ -187,7 +183,7 @@ function setupFormListeners() {
         window.validateForm();
     }, 400));
 
-    // Description Validation (Spam, Emojis, Short Text)
+    // Description Validation
     subDescription?.addEventListener("input", debounce(() => {
         const text = subDescription.value.trim();
         const hasEmojis = emojiRegex.test(text);
@@ -208,7 +204,7 @@ function setupFormListeners() {
     }, 400));
 }
 
-// Master Validation: Checks if the Submit Button should be unlocked
+// Master Validation
 window.validateForm = function() {
     const btn = document.getElementById("submitBtn");
     if(!btn) return;
@@ -227,7 +223,6 @@ window.validateForm = function() {
     const linkSuccess = document.getElementById("linkSuccess");
     const descSuccess = document.getElementById("descSuccess");
     
-    // The button will only unlock if the 'Success' messages are visible
     const isNameValid = nameSuccess ? !nameSuccess.classList.contains("hidden") : true;
     const isLinkValid = linkSuccess ? !linkSuccess.classList.contains("hidden") : true;
     const isDescValid = descSuccess ? !descSuccess.classList.contains("hidden") : true;
