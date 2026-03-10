@@ -1,5 +1,5 @@
 // ==========================================
-// auth-data.js
+// dashboard-auth.js
 // Handles Supabase Auth and Database
 // ==========================================
 
@@ -114,7 +114,6 @@ document.getElementById('submitGroupForm')?.addEventListener('submit', async fun
     const subPlatform = document.getElementById('subPlatform');
     const subCategory = document.getElementById('subCategory');
 
-    // Dynamically categorize Discord as Server, Reddit as Community, etc.
     let determinedType = 'Group';
     if (subPlatform.value === 'discord') determinedType = 'Server';
     if (subPlatform.value === 'reddit') determinedType = 'Community';
@@ -155,7 +154,6 @@ document.getElementById('submitGroupForm')?.addEventListener('submit', async fun
 
     alert(window.editingGroupId ? "Community Updated Successfully!" : "Community Submitted for Review!");
     
-    // Reset form and hide visual success labels
     e.target.reset();
     
     const subLink = document.getElementById('subLink');
@@ -172,7 +170,7 @@ document.getElementById('submitGroupForm')?.addEventListener('submit', async fun
     
     window.editingGroupId = null;
     submitBtn.innerHTML = 'Post Group';
-    if(window.validateForm) window.validateForm(); // Re-lock the button
+    if(window.validateForm) window.validateForm();
     
     await fetchMyGroups();
 });
@@ -181,13 +179,13 @@ window.deleteGroup = async function(id) {
     if (confirm("Are you sure you want to delete this community?")) {
         const previousGroups = [...window.myPostedGroups];
         window.myPostedGroups = window.myPostedGroups.filter(g => g.id !== id);
-        renderMyGroups(); // Optimistic UI update
+        renderMyGroups();
 
         const { error } = await supabase.from('communities').delete().eq('id', id).eq('user_id', window.currentUser.id);
 
         if (error) {
             alert("Failed to delete. Please try again.");
-            window.myPostedGroups = previousGroups; // Revert on fail
+            window.myPostedGroups = previousGroups; 
             renderMyGroups();
         } else {
             const countLabel = document.getElementById('activeGroupCount');
@@ -251,14 +249,13 @@ window.editGroup = function(id) {
     const subLink = document.getElementById('subLink');
     const subDescription = document.getElementById('subDescription');
 
-    // Fill inputs
     if(subName) subName.value = group.name;
     if(subPlatform) subPlatform.value = group.platform;
     if(subCategory) subCategory.value = group.category;
     
     if(subCountry) {
         subCountry.value = group.country;
-        subCountry.dispatchEvent(new Event('change')); // Triggers city list update
+        subCountry.dispatchEvent(new Event('change')); 
     }
     
     if(subCity) subCity.value = group.city;
@@ -273,7 +270,6 @@ window.editGroup = function(id) {
         subDescription.disabled = false;
     }
 
-    // Dispatch input events to trigger UI validation success labels
     if(subLink) subLink.dispatchEvent(new Event('input'));
     if(subDescription) subDescription.dispatchEvent(new Event('input'));
     if(subCategory) subCategory.dispatchEvent(new Event('change'));
