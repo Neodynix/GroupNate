@@ -81,8 +81,8 @@ let myPostedGroups = [];
 supabase.auth.onAuthStateChange((event, session) => {
     if (session?.user) {
         currentUser = session.user;
-        authGate.classList.add("hidden");
-        dashboardApp.classList.remove("hidden");
+        if(authGate) authGate.classList.add("hidden");
+        if(dashboardApp) dashboardApp.classList.remove("hidden");
 
         if (userAvatar) userAvatar.innerText = currentUser.email?.charAt(0)?.toUpperCase() || "U";
         if (profileEmail) profileEmail.innerText = currentUser.email || "";
@@ -90,8 +90,8 @@ supabase.auth.onAuthStateChange((event, session) => {
         fetchMyGroups();
     } else {
         currentUser = null;
-        dashboardApp.classList.add("hidden");
-        authGate.classList.remove("hidden");
+        if(dashboardApp) dashboardApp.classList.add("hidden");
+        if(authGate) authGate.classList.remove("hidden");
     }
 });
 
@@ -100,20 +100,24 @@ supabase.auth.onAuthStateChange((event, session) => {
 // ===============================
 
 async function initDashboard() {
-    // Populate Select Dropdowns
-    subCategory.innerHTML = '<option value="">Select Category</option>';
-    categories.forEach(cat => subCategory.appendChild(new Option(cat, cat)));
+    // Safely populate Dropdowns if they exist
+    if (subCategory) {
+        subCategory.innerHTML = '<option value="">Select Category</option>';
+        categories.forEach(cat => subCategory.appendChild(new Option(cat, cat)));
+    }
     
-    subCountry.innerHTML = '<option value="">Select Country</option>';
-    Object.keys(locations).forEach(country => subCountry.appendChild(new Option(country, country)));
+    if (subCountry) {
+        subCountry.innerHTML = '<option value="">Select Country</option>';
+        Object.keys(locations).forEach(country => subCountry.appendChild(new Option(country, country)));
+    }
     
     setupFormListeners();
 
     const { data: { session } } = await supabase.auth.getSession();
     if (session?.user) {
         currentUser = session.user;
-        authGate.classList.add("hidden");
-        dashboardApp.classList.remove("hidden");
+        if(authGate) authGate.classList.add("hidden");
+        if(dashboardApp) dashboardApp.classList.remove("hidden");
         if (userAvatar) userAvatar.innerText = currentUser.email?.charAt(0)?.toUpperCase() || "U";
         if (profileEmail) profileEmail.innerText = currentUser.email;
         fetchMyGroups();
@@ -128,11 +132,11 @@ window.toggleAuthMode = function() {
     if (authTitle.innerText === 'Welcome Back') {
         authTitle.innerText = 'Create Account';
         authSubmitBtn.innerText = 'Sign Up';
-        authToggleText.innerHTML = 'Already have an account? <span style="color: var(--accent); cursor: pointer; font-weight: bold;" onclick="toggleAuthMode()">Log In</span>';
+        if(authToggleText) authToggleText.innerHTML = 'Already have an account? <span style="color: var(--accent); cursor: pointer; font-weight: bold;" onclick="toggleAuthMode()">Log In</span>';
     } else {
         authTitle.innerText = 'Welcome Back';
         authSubmitBtn.innerText = 'Log In';
-        authToggleText.innerHTML = 'Need an account? <span style="color: var(--accent); cursor: pointer; font-weight: bold;" onclick="toggleAuthMode()">Sign Up</span>';
+        if(authToggleText) authToggleText.innerHTML = 'Need an account? <span style="color: var(--accent); cursor: pointer; font-weight: bold;" onclick="toggleAuthMode()">Sign Up</span>';
     }
 };
 
@@ -174,70 +178,96 @@ if (authForm) {
 // ===============================
 
 function setupFormListeners() {
-    subCountry.addEventListener('change', function() {
-        subCity.innerHTML = '<option value="">Select City</option>';
-        if(locations[this.value]) locations[this.value].forEach(city => subCity.appendChild(new Option(city, city)));
-    });
+    if (subCountry) {
+        subCountry.addEventListener('change', function() {
+            if(subCity) {
+                subCity.innerHTML = '<option value="">Select City</option>';
+                if(locations[this.value]) locations[this.value].forEach(city => subCity.appendChild(new Option(city, city)));
+            }
+        });
+    }
 
-    subPlatform.addEventListener('change', function() {
-        const isEnabled = this.value !== "";
-        subLink.disabled = !isEnabled;
-        subDescription.disabled = !isEnabled;
-        if(subLink.value) subLink.dispatchEvent(new Event('input'));
-        validateForm();
-    });
+    if (subPlatform) {
+        subPlatform.addEventListener('change', function() {
+            const isEnabled = this.value !== "";
+            if(subLink) subLink.disabled = !isEnabled;
+            if(subDescription) subDescription.disabled = !isEnabled;
+            if(subLink && subLink.value) subLink.dispatchEvent(new Event('input'));
+            validateForm();
+        });
+    }
 
-    subCategory.addEventListener('change', function() {
-        if (premiumCategories.includes(this.value)) {
-            premiumWarning.classList.remove('hidden');
-            submitBtn.innerHTML = '<i class="fa-solid fa-crown"></i> Subscribe to Post';
-            submitBtn.style.background = 'linear-gradient(45deg, #f1c40f, #e67e22)';
-        } else {
-            premiumWarning.classList.add('hidden');
-            submitBtn.innerHTML = editingGroupId ? 'Update Group' : 'Post Group';
-            submitBtn.style.background = ''; 
-        }
-        validateForm();
-    });
+    if (subCategory) {
+        subCategory.addEventListener('change', function() {
+            if (premiumCategories.includes(this.value)) {
+                if(premiumWarning) premiumWarning.classList.remove('hidden');
+                if(submitBtn) {
+                    submitBtn.innerHTML = '<i class="fa-solid fa-crown"></i> Subscribe to Post';
+                    submitBtn.style.background = 'linear-gradient(45deg, #f1c40f, #e67e22)';
+                }
+            } else {
+                if(premiumWarning) premiumWarning.classList.add('hidden');
+                if(submitBtn) {
+                    submitBtn.innerHTML = editingGroupId ? 'Update Group' : 'Post Group';
+                    submitBtn.style.background = ''; 
+                }
+            }
+            validateForm();
+        });
+    }
 
-    subLink.addEventListener('input', debounce(() => {
-        const url = subLink.value.trim();
-        if (url === "") { 
-            linkWarning.classList.add('hidden'); linkSuccess.classList.add('hidden'); 
-        } else if (subPlatform.value && linkPatterns[subPlatform.value].test(url)) {
-            linkSuccess.classList.remove('hidden'); linkWarning.classList.add('hidden');
-        } else {
-            linkWarning.classList.remove('hidden'); linkSuccess.classList.add('hidden');
-        }
-        validateForm();
-    }, 400));
+    if (subLink) {
+        subLink.addEventListener('input', debounce(() => {
+            const url = subLink.value.trim();
+            if (url === "") { 
+                if(linkWarning) linkWarning.classList.add('hidden'); 
+                if(linkSuccess) linkSuccess.classList.add('hidden'); 
+            } else if (subPlatform.value && linkPatterns[subPlatform.value] && linkPatterns[subPlatform.value].test(url)) {
+                if(linkSuccess) linkSuccess.classList.remove('hidden'); 
+                if(linkWarning) linkWarning.classList.add('hidden');
+            } else {
+                if(linkWarning) linkWarning.classList.remove('hidden'); 
+                if(linkSuccess) linkSuccess.classList.add('hidden');
+            }
+            validateForm();
+        }, 400));
+    }
 
-    subDescription.addEventListener('input', debounce(() => {
-        const text = subDescription.value.trim();
-        const hasEmojis = emojiRegex.test(text);
-        const words = text.split(/\s+/).filter(word => word.length > 1);
-        
-        if (text === "") {
-            descWarning.classList.add('hidden'); descSuccess.classList.add('hidden');
-        } else if (hasEmojis || text.length < 40 || words.length < 5) {
-            descWarning.classList.remove('hidden'); descSuccess.classList.add('hidden');
-        } else {
-            descSuccess.classList.remove('hidden'); descWarning.classList.add('hidden');
-        }
-        validateForm();
-    }, 400));
+    if (subDescription) {
+        subDescription.addEventListener('input', debounce(() => {
+            const text = subDescription.value.trim();
+            const hasEmojis = emojiRegex.test(text);
+            const words = text.split(/\s+/).filter(word => word.length > 1);
+            
+            if (text === "") {
+                if(descWarning) descWarning.classList.add('hidden'); 
+                if(descSuccess) descSuccess.classList.add('hidden');
+            } else if (hasEmojis || text.length < 40 || words.length < 5) {
+                if(descWarning) descWarning.classList.remove('hidden'); 
+                if(descSuccess) descSuccess.classList.add('hidden');
+            } else {
+                if(descSuccess) descSuccess.classList.remove('hidden'); 
+                if(descWarning) descWarning.classList.add('hidden');
+            }
+            validateForm();
+        }, 400));
+    }
     
     if(subName) subName.addEventListener('input', validateForm);
 }
 
 function validateForm() {
+    if (!submitBtn) return;
+
     const isNameSet = subName && subName.value.trim() !== "";
-    const isPlatformSet = subPlatform.value !== "";
-    const isCategorySet = subCategory.value !== "";
-    const isCountrySet = subCountry.value !== "";
-    const isCitySet = subCity.value !== "";
-    const isLinkValid = !linkSuccess.classList.contains('hidden');
-    const isDescValid = !descSuccess.classList.contains('hidden');
+    const isPlatformSet = subPlatform && subPlatform.value !== "";
+    const isCategorySet = subCategory && subCategory.value !== "";
+    const isCountrySet = subCountry && subCountry.value !== "";
+    const isCitySet = subCity && subCity.value !== "";
+    
+    // Safety checks for HTML versions that don't have success labels
+    const isLinkValid = linkSuccess ? !linkSuccess.classList.contains('hidden') : true;
+    const isDescValid = descSuccess ? !descSuccess.classList.contains('hidden') : true;
 
     if (isNameSet && isPlatformSet && isCategorySet && isCountrySet && isCitySet && isLinkValid && isDescValid) {
         submitBtn.disabled = false;
@@ -320,10 +350,10 @@ if(submitForm) {
         alert(editingGroupId ? "Community Updated Successfully!" : "Community Submitted for Review!");
         
         submitForm.reset();
-        subLink.disabled = true;
-        subDescription.disabled = true;
-        linkSuccess.classList.add('hidden');
-        descSuccess.classList.add('hidden');
+        if(subLink) subLink.disabled = true;
+        if(subDescription) subDescription.disabled = true;
+        if(linkSuccess) linkSuccess.classList.add('hidden');
+        if(descSuccess) descSuccess.classList.add('hidden');
         editingGroupId = null;
         submitBtn.innerHTML = 'Post Group';
         validateForm();
@@ -364,8 +394,8 @@ function renderMyGroups() {
                 ${statusHtml}
             </div>
             <div class="ledger-actions" style="display: flex; gap: 10px;">
-                <button class="nav-btn edit-btn" onclick="editGroup(${group.id})"><i class="fa-solid fa-pen"></i> Edit</button>
-                <button class="nav-btn delete-btn" style="color: #ff4757; border-color: rgba(255, 71, 87, 0.3);" onclick="deleteGroup(${group.id})"><i class="fa-solid fa-trash"></i> Delete</button>
+                <button class="nav-btn edit-btn" onclick="editGroup('${group.id}')"><i class="fa-solid fa-pen"></i> Edit</button>
+                <button class="nav-btn delete-btn" style="color: #ff4757; border-color: rgba(255, 71, 87, 0.3);" onclick="deleteGroup('${group.id}')"><i class="fa-solid fa-trash"></i> Delete</button>
             </div>
         `;
         myGroupsList.appendChild(item);
@@ -397,23 +427,29 @@ window.editGroup = function(id) {
     editingGroupId = group.id;
 
     if(subName) subName.value = group.name;
-    subPlatform.value = group.platform;
-    subCategory.value = group.category;
-    subCountry.value = group.country;
+    if(subPlatform) subPlatform.value = group.platform;
+    if(subCategory) subCategory.value = group.category;
     
-    // Dispatch change so city list populates before assigning city
-    subCountry.dispatchEvent(new Event('change'));
-    subCity.value = group.city;
+    if(subCountry) {
+        subCountry.value = group.country;
+        subCountry.dispatchEvent(new Event('change'));
+    }
     
-    subLink.value = group.link;
-    subLink.disabled = false;
-    subDescription.value = group.description;
-    subDescription.disabled = false;
+    if(subCity) subCity.value = group.city;
+    
+    if(subLink) {
+        subLink.value = group.link;
+        subLink.disabled = false;
+    }
+    
+    if(subDescription) {
+        subDescription.value = group.description;
+        subDescription.disabled = false;
+    }
 
-    // Trigger validation logic
-    subLink.dispatchEvent(new Event('input'));
-    subDescription.dispatchEvent(new Event('input'));
-    subCategory.dispatchEvent(new Event('change'));
+    if(subLink) subLink.dispatchEvent(new Event('input'));
+    if(subDescription) subDescription.dispatchEvent(new Event('input'));
+    if(subCategory) subCategory.dispatchEvent(new Event('change'));
     if(subName) subName.dispatchEvent(new Event('input'));
 
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -424,9 +460,7 @@ window.editGroup = function(id) {
 // ===============================
 
 window.switchView = function(viewName, element) {
-    if(event) event.preventDefault();
     document.querySelectorAll('.dashboard-view').forEach(view => {
-        // Handle both standard class-toggling methods depending on CSS setup
         view.classList.remove('active');
         view.classList.add('hidden');
     });
@@ -441,14 +475,12 @@ window.switchView = function(viewName, element) {
     
     if(element) element.classList.add('active');
     
-    // Close mobile menu if open
     const menu = document.getElementById('dashboardMenu');
     if(menu && menu.classList.contains('active')) menu.classList.remove('active');
     if(menu && menu.classList.contains('show')) menu.classList.remove('show');
 };
 
 window.openPaymentModal = function(planName, price) {
-    // You will need to replace this URL with your actual payment gateway link later
     document.getElementById('gatewayIframe').src = `about:blank`; 
     document.getElementById('paymentModal').classList.remove('hidden');
 };
@@ -489,12 +521,10 @@ window.toggleProfilePopup = function() {
     if(popup) popup.classList.toggle('hidden'); 
 };
 
-// Close modals when clicking the background overlay
 document.addEventListener('click', (e) => {
     if (e.target.classList.contains('overlay') && e.target.id !== 'authGate') closeModals();
 });
 
-// Debounce helper for inputs
 function debounce(func, wait) {
     let timeout;
     return function(...args) {
