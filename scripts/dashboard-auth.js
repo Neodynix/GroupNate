@@ -1,12 +1,7 @@
 // ==========================================
-// dashboard-auth.js
-// Handles Supabase Auth and Database
+// dashboard-auth.js (MOBILE DEBUGGER VERSION)
 // ==========================================
 
-console.log("Auth & Data Script Loaded");
-
-// IMPORTANT: Ensure Row Level Security (RLS) is enabled in your Supabase dashboard 
-// so users can only access their own data.
 const supabaseUrl = 'https://zpoktahbfhnanizgvehh.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpwb2t0YWhiZmhuYW5pemd2ZWhoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE3ODkwNTIsImV4cCI6MjA4NzM2NTA1Mn0.9xL_kLbgVQmEDtgggb5PauUCGlt4Be5dbjXjp4Hs-Xg';
 const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
@@ -14,9 +9,77 @@ const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 window.currentUser = null; 
 window.editingGroupId = null;
 window.myPostedGroups = [];
-window.initialLoadComplete = false; // Added to track loading state
+window.initialLoadComplete = false;
 
-// --- Auth State ---
+document.addEventListener("DOMContentLoaded", () => {
+    // Check session on load
+    supabase.auth.getSession().then(({ data: { session } }) => {
+        if (!session) {
+            document.getElementById('authGate')?.classList.remove('hidden');
+        }
+    });
+
+    const authForm = document.getElementById('authForm');
+    
+    if (!authForm) {
+        alert("CRITICAL ERROR: The script cannot find your login form in the HTML!");
+        return; 
+    }
+
+    authForm.addEventListener('submit', async function(e) {
+        e.preventDefault(); 
+        
+        // POPUP 1: Did the button actually register the click?
+        alert("Step 1: Button clicked! Form submission intercepted.");
+
+        const email = document.getElementById('authEmail').value;
+        const password = document.getElementById('authPassword').value;
+        const submitBtn = document.getElementById('authSubmitBtn');
+        const authTitle = document.getElementById('authTitle');
+
+        if (!email || !password) {
+            alert("Please enter an email and password.");
+            return;
+        }
+
+        const isLogin = authTitle.innerText.includes('Welcome Back');
+        
+        // POPUP 2: Did it correctly figure out if you are logging in or signing up?
+        alert("Step 2: Action detected -> " + (isLogin ? "Logging In" : "Signing Up"));
+
+        const originalText = submitBtn.innerText;
+        submitBtn.innerText = "Processing...";
+        submitBtn.disabled = true;
+
+        try {
+            if (isLogin) {
+                // POPUP 3: Sending to Supabase
+                alert("Step 3: Talking to Supabase to log in...");
+                const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+                
+                if (error) throw error;
+                
+                // POPUP 4: Success!
+                alert("Step 4: LOGIN SUCCESS! Connecting to dashboard...");
+            } else {
+                alert("Step 3: Talking to Supabase to create account...");
+                const { data, error } = await supabase.auth.signUp({ email, password });
+                
+                if (error) throw error;
+                
+                alert("Step 4: SIGNUP SUCCESS! Check your email for a confirmation link.");
+            }
+        } catch (error) {
+            // POPUP 5: Supabase yelled at us. What did it say?
+            alert("SUPABASE ERROR: " + error.message);
+        } finally {
+            submitBtn.innerText = originalText;
+            submitBtn.disabled = false;
+        }
+    });
+});
+
+// --- Auth State Changes ---
 supabase.auth.onAuthStateChange((event, session) => {
     const authGate = document.getElementById('authGate');
     const dashboardApp = document.getElementById('dashboardApp');
@@ -31,7 +94,7 @@ supabase.auth.onAuthStateChange((event, session) => {
         if(avatar) avatar.innerText = window.currentUser.email.charAt(0).toUpperCase();
         if(emailLabel) emailLabel.innerText = window.currentUser.email;
         
-        fetchMyGroups();
+        fetchMyGroups(); 
     } else {
         window.currentUser = null;
         if(dashboardApp) dashboardApp.classList.add('hidden');
@@ -39,64 +102,23 @@ supabase.auth.onAuthStateChange((event, session) => {
     }
 });
 
-// Check Session on Load
-async function checkInitialSession() {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-        document.getElementById('authGate')?.classList.remove('hidden');
-    }
-}
-document.addEventListener("DOMContentLoaded", checkInitialSession);
-
-// --- Auth Submit ---
-document.getElementById('authForm')?.addEventListener('submit', async function(e) {
-    e.preventDefault();
-    const email = document.getElementById('authEmail').value;
-    const password = document.getElementById('authPassword').value;
-    
-    const submitBtn = document.getElementById('authSubmitBtn');
-    if(!submitBtn) return;
-    
-    // FIXED: More robust way to check if it's a login or signup action
-    const isLogin = submitBtn.innerText.trim() === 'Log In';
-    
-    const originalText = submitBtn.innerText;
-    submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing...';
-    submitBtn.disabled = true;
-
-    let authError;
-
-    if (isLogin) {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        authError = error;
-    } else {
-        const { error } = await supabase.auth.signUp({ email, password });
-        authError = error;
-        if (!error) {
-            alert("Success! Check your email for the confirmation link.");
-            if(window.toggleAuthMode) window.toggleAuthMode(); 
-        }
-    }
-
-    if (authError) alert("Error: " + authError.message);
-    
-    submitBtn.innerText = originalText;
-    submitBtn.disabled = false;
-});
-
+// --- Logout ---
 window.confirmLogout = async function() {
     const { error } = await supabase.auth.signOut();
     if (error) alert("Error logging out: " + error.message);
     else window.location.reload(); 
 };
 
-// --- CRUD Operations ---
+// ==========================================
+// CRUD OPERATIONS
+// ==========================================
+
 async function fetchMyGroups() {
     if(!window.currentUser) return;
     
     const list = document.getElementById('myGroupsList');
     if (list && !window.initialLoadComplete) {
-        list.innerHTML = '<p style="color:var(--text-muted); text-align:center;"><i class="fa-solid fa-spinner fa-spin"></i> Loading your communities...</p>';
+        list.innerHTML = '<p style="color:var(--text-muted); text-align:center;">Loading communities...</p>';
     }
 
     const { data, error } = await supabase
@@ -113,7 +135,7 @@ async function fetchMyGroups() {
         if(countLabel) countLabel.innerText = window.myPostedGroups.length;
         renderMyGroups();
     } else {
-        if (list) list.innerHTML = `<p style="color:#ff4757; text-align:center;">Error loading communities: ${error.message}</p>`;
+        alert("Error fetching groups: " + error.message);
     }
 }
 
@@ -123,7 +145,7 @@ document.getElementById('submitGroupForm')?.addEventListener('submit', async fun
     
     const submitBtn = document.getElementById('submitBtn');
     const originalBtnText = submitBtn.innerHTML;
-    submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+    submitBtn.innerHTML = 'Saving...';
     submitBtn.disabled = true;
 
     const subPlatform = document.getElementById('subPlatform');
@@ -147,7 +169,7 @@ document.getElementById('submitGroupForm')?.addEventListener('submit', async fun
         link: document.getElementById('subLink').value.trim(),
         description: document.getElementById('subDescription').value.trim(),
         is_premium: isPremium,
-        status: window.editingGroupId ? undefined : 'pending' // Preserve status on edit
+        status: window.editingGroupId ? undefined : 'pending' 
     };
 
     let resultError;
@@ -168,26 +190,16 @@ document.getElementById('submitGroupForm')?.addEventListener('submit', async fun
     }
 
     alert(window.editingGroupId ? "Community Updated Successfully!" : "Community Submitted for Review!");
-    
     e.target.reset();
     
-    // Reset UI states
     const elementsToDisable = ['subLink', 'subDescription'];
     const elementsToHide = ['nameSuccess', 'linkSuccess', 'descSuccess', 'premiumWarning'];
-    
-    elementsToDisable.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.disabled = true;
-    });
-    
-    elementsToHide.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.classList.add('hidden');
-    });
+    elementsToDisable.forEach(id => { const el = document.getElementById(id); if (el) el.disabled = true; });
+    elementsToHide.forEach(id => { const el = document.getElementById(id); if (el) el.classList.add('hidden'); });
     
     window.editingGroupId = null;
     submitBtn.innerHTML = 'Post Group';
-    submitBtn.style.background = ''; // Reset premium styling if applied
+    submitBtn.style.background = ''; 
     if(window.validateForm) window.validateForm();
     
     await fetchMyGroups();
@@ -195,7 +207,6 @@ document.getElementById('submitGroupForm')?.addEventListener('submit', async fun
 
 window.deleteGroup = async function(id) {
     if (confirm("Are you sure you want to delete this community?")) {
-        // Optimistic UI update
         const previousGroups = [...window.myPostedGroups];
         window.myPostedGroups = window.myPostedGroups.filter(g => g.id !== id);
         renderMyGroups();
@@ -207,7 +218,6 @@ window.deleteGroup = async function(id) {
 
         if (error) {
             alert("Failed to delete. Please try again.");
-            // Rollback UI if delete fails
             window.myPostedGroups = previousGroups; 
             renderMyGroups();
             if(countLabel) countLabel.innerText = window.myPostedGroups.length;
@@ -227,10 +237,10 @@ function renderMyGroups() {
 
     window.myPostedGroups.forEach(group => {
         let statusHtml = '';
-        if (group.status === 'live') statusHtml = '<div class="status-badge status-live"><i class="fa-solid fa-check"></i> Live</div>';
-        if (group.status === 'pending') statusHtml = '<div class="status-badge status-pending"><i class="fa-solid fa-clock"></i> Pending</div>';
-        if (group.status === 'expired') statusHtml = '<div class="status-badge status-expired"><i class="fa-solid fa-triangle-exclamation"></i> Expired</div>';
-        if (group.status === 'rejected') statusHtml = '<div class="status-badge status-rejected"><i class="fa-solid fa-ban"></i> Rejected</div>';
+        if (group.status === 'live') statusHtml = '<div class="status-badge status-live">Live</div>';
+        if (group.status === 'pending') statusHtml = '<div class="status-badge status-pending">Pending</div>';
+        if (group.status === 'expired') statusHtml = '<div class="status-badge status-expired">Expired</div>';
+        if (group.status === 'rejected') statusHtml = '<div class="status-badge status-rejected">Rejected</div>';
 
         const item = document.createElement('div');
         item.className = 'ledger-item glass-panel';
@@ -248,8 +258,8 @@ function renderMyGroups() {
                 ${statusHtml}
             </div>
             <div class="ledger-actions" style="display: flex; gap: 10px;">
-                <button class="nav-btn edit-btn" onclick="editGroup('${group.id}')"><i class="fa-solid fa-pen"></i> Edit</button>
-                <button class="nav-btn delete-btn" style="color: #ff4757; border-color: rgba(255, 71, 87, 0.3);" onclick="deleteGroup('${group.id}')"><i class="fa-solid fa-trash"></i> Delete</button>
+                <button class="nav-btn edit-btn" onclick="editGroup('${group.id}')">Edit</button>
+                <button class="nav-btn delete-btn" style="color: #ff4757; border-color: rgba(255, 71, 87, 0.3);" onclick="deleteGroup('${group.id}')">Delete</button>
             </div>
         `;
         list.appendChild(item);
@@ -279,21 +289,13 @@ window.editGroup = function(id) {
         subCountry.dispatchEvent(new Event('change')); 
     }
     
-    // Slight timeout needed to let the dynamic city list populate before setting the value
     setTimeout(() => {
         if(subCity) subCity.value = group.city;
         if(window.validateForm) window.validateForm();
     }, 50);
     
-    if(subLink) {
-        subLink.value = group.link;
-        subLink.disabled = false;
-    }
-    
-    if(subDescription) {
-        subDescription.value = group.description;
-        subDescription.disabled = false;
-    }
+    if(subLink) { subLink.value = group.link; subLink.disabled = false; }
+    if(subDescription) { subDescription.value = group.description; subDescription.disabled = false; }
 
     if(subLink) subLink.dispatchEvent(new Event('input'));
     if(subDescription) subDescription.dispatchEvent(new Event('input'));
