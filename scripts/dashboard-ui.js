@@ -82,26 +82,42 @@ window.toggleProfilePopup = () => {
     document.getElementById("profilePopup")?.classList.toggle("hidden");
 };
 
+// FIXED: View Switcher Logic
 window.switchView = (viewName, el) => {
-    document.querySelectorAll(".dashboard-view").forEach(v => v.classList.add("hidden"));
-    document.getElementById(`view-${viewName}`)?.classList.remove("hidden");
-    document.querySelectorAll(".nav-link").forEach(l => l.classList.remove("active"));
-    if (el) el.classList.add("active");
+    // 1. Hide all views
+    document.querySelectorAll(".dashboard-view").forEach(v => {
+        v.classList.add("hidden");
+        v.classList.remove("active"); 
+    });
     
+    // 2. Show the selected view
+    const selectedView = document.getElementById(`view-${viewName}`);
+    if (selectedView) {
+        selectedView.classList.remove("hidden");
+        // Use a small timeout to allow CSS transitions to apply after removing 'hidden'
+        setTimeout(() => selectedView.classList.add("active"), 10);
+    }
+    
+    // 3. Update the navigation link styling
+    document.querySelectorAll(".nav-link").forEach(l => l.classList.remove("active"));
+    if (el) {
+        // If the click came from an icon inside the link, make sure we get the <a> tag
+        const linkElement = el.target ? (el.target.closest('.nav-link') || el.currentTarget) : el.currentTarget;
+        if (linkElement) linkElement.classList.add("active");
+    }
+    
+    // 4. Close the mobile menu automatically
     const menu = document.getElementById("dashboardMenu");
     if (menu) {
         menu.classList.remove("active");
         menu.classList.remove("show");
     }
+    
+    // Smooth scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 
 window.openLogoutModal = () => document.getElementById("logoutModal")?.classList.remove("hidden");
-window.closeModals = () => document.querySelectorAll(".overlay:not(#authGate)").forEach(m => m.classList.add("hidden"));
-window.openPaymentModal = function(planName, price) {
-    const iframe = document.getElementById('gatewayIframe');
-    if(iframe) iframe.src = `about:blank`; // Payment URL here
-    document.getElementById('paymentModal')?.classList.remove('hidden');
-};
 
 // --- Form Validation Listeners ---
 function setupFormListeners() {
@@ -244,6 +260,46 @@ function debounce(func, wait) {
         timeout = setTimeout(() => func.apply(this, args), wait);
     };
 }
+
+// ==========================================
+// SUBSCRIPTION CHECKOUT LOGIC
+// ==========================================
+
+window.openPaymentModal = function(planName, price) {
+    // 1. You must be logged in to buy a subscription
+    if (!window.currentUser) {
+        alert("Please log in to upgrade your account.");
+        return;
+    }
+
+    const iframe = document.getElementById('gatewayIframe');
+    let checkoutUrl = '';
+
+    // 2. Put your real Payment Links here later
+    // Example: Use Flutterwave, Paystack, or Stripe links
+    if (planName === 'Creator Pro') {
+        checkoutUrl = 'https://paystack.com/pay/your-pro-link'; 
+    } else if (planName === 'Agency') {
+        checkoutUrl = 'https://paystack.com/pay/your-agency-link';
+    }
+
+    // 3. Pass the user's email to pre-fill the checkout and link the payment
+    const finalUrl = `${checkoutUrl}?email=${encodeURIComponent(window.currentUser.email)}`;
+
+    if(iframe) {
+        iframe.src = finalUrl;
+    }
+    
+    // 4. Show the modal
+    document.getElementById('paymentModal')?.classList.remove('hidden');
+};
+
+// Clear the iframe when the modal is closed so it doesn't keep running in the background
+window.closeModals = () => {
+    document.querySelectorAll(".overlay:not(#authGate)").forEach(m => m.classList.add("hidden"));
+    const iframe = document.getElementById('gatewayIframe');
+    if (iframe) iframe.src = 'about:blank';
+};
 
 // Start UI
 document.addEventListener("DOMContentLoaded", initUI);
