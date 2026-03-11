@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GroupNate | Payment Successful</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles/main.css"> <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .success-card {
+            max-width: 450px;
+            width: 90%;
+            text-align: center;
+            padding: 50px 30px;
+            animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .icon-circle {
+            width: 100px;
+            height: 100px;
+            background: rgba(46, 213, 115, 0.1);
+            border: 2px solid #2ed573;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto 25px auto;
+            color: #2ed573;
+            font-size: 3rem;
+            animation: pulseSuccess 2s infinite;
+        }
+
+        h1 { margin-bottom: 15px; font-size: 2rem; color: white; }
+        p { color: var(--text-muted); margin-bottom: 30px; line-height: 1.6; }
+        
+        .ref-box {
+            background: rgba(0,0,0,0.3);
+            border: 1px dashed rgba(255,255,255,0.2);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            font-family: monospace;
+            color: #ccc;
+        }
+
+        @keyframes slideUpFade {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulseSuccess {
+            0% { box-shadow: 0 0 0 0 rgba(46, 213, 115, 0.4); }
+            70% { box-shadow: 0 0 0 20px rgba(46, 213, 115, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(46, 213, 115, 0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="background-blobs">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+    </div>
+
+    <div class="glass-panel success-card">
+        <div class="icon-circle">
+            <i class="fa-solid fa-check"></i>
+        </div>
+        <h1>Payment Successful!</h1>
+        <p>Thank you for upgrading. Your account is currently being updated in the background. You now have access to premium features.</p>
+        
+        <div class="ref-box" id="refBox">
+            Ref: Loading...
+        </div>
+
+        <button class="apply-btn full-width" onclick="window.location.href='dashboard.html'" style="margin-top: 0;">
+            Return to Dashboard
+        </button>
+    </div>
+
+    <script>
+        // Grab the Pesapal Tracking ID from the URL so the user can save it
+        document.addEventListener("DOMContentLoaded", () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const trackingId = urlParams.get('OrderTrackingId');
+            
+            if (trackingId) {
+                document.getElementById('refBox').innerText = "Tracking ID: " + trackingId;
+            } else {
+                document.getElementById('refBox').style.display = 'none';
+            }
+        });
+    </script>
+</body>
+  </html>
