@@ -17,8 +17,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         // ==========================================
         // ⚠️ IMPORTANT: ADD YOUR KEYS HERE ⚠️
         // ==========================================
-        const supabaseUrl = 'YOUR_SUPABASE_URL_HERE';
-        const supabaseKey = 'YOUR_SUPABASE_ANON_KEY_HERE';
+        const supabaseUrl = 'https://zpoktahbfhnanizgvehh.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpwb2t0YWhiZmhuYW5pemd2ZWhoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE3ODkwNTIsImV4cCI6MjA4NzM2NTA1Mn0.9xL_kLbgVQmEDtgggb5PauUCGlt4Be5dbjXjp4Hs-Xg';
         
         const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
