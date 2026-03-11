@@ -1,10 +1,12 @@
 /* --- Gatekeeper / Auth Wall --- */
 .gatekeeper-overlay {
     background: rgba(10, 15, 30, 0.85); /* Slightly darker to hide dashboard entirely */
-    /* Cross-browser glass blurs */
     -webkit-backdrop-filter: blur(15px);
-    ll-filter:lblur(15px);
+    backdrop-filter: blur(15px);
     z-index: 9999;
+    /* Hardware acceleration to prevent Safari background bleeding */
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
 }
 
 /* --- Dashboard Main Container --- */
@@ -19,7 +21,7 @@
     display: none;
     -webkit-animation: fadeInView 0.4s ease forwards;
     animation: fadeInView 0.4s ease forwards;
-    /* Hardware acceleration to prevent Safari layout shifting */
+    /* Forces smooth view transitions on iOS */
     -webkit-transform: translateZ(0);
     transform: translateZ(0);
 }
@@ -34,7 +36,7 @@
 @media (min-width: 992px) {
     .dashboard-view.active.dashboard-grid {
         grid-template-columns: 1fr 1fr;
-        -webkit-box-align: start; /* Safari Grid fix */
+        -webkit-box-align: start;
         align-items: start;
     }
 }
@@ -68,12 +70,13 @@
     -webkit-transition: 0.3s;
     transition: 0.3s;
     text-transform: uppercase;
-    /* Prevent text selection double-tap issues on mobile */
+    /* Prevents double-tap text selection bug on mobile */
     -webkit-user-select: none;
     user-select: none;
 }
+
 .user-circle:hover { 
-    -webkit-transform: scale(1.05); 
+    -webkit-transform: scale(1.05);
     transform: scale(1.05); 
 }
 
@@ -89,11 +92,10 @@
     gap: 5px;
     opacity: 1;
     visibility: visible;
-    /* Hardware acceleration for smooth popups */
-    -webkit-transform: translateY(0) translateZ(0);
-    transform: translateY(0) translateZ(0);
     -webkit-transition: opacity 0.3s ease, visibility 0.3s ease, -webkit-transform 0.3s ease;
     transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s ease;
+    -webkit-transform: translateY(0) translateZ(0);
+    transform: translateY(0) translateZ(0);
     z-index: 2000;
 }
 
@@ -125,12 +127,12 @@
     background: rgba(0, 0, 0, 0.4);
     border: 1px solid var(--glass-border);
     color: white;
-    border-radius: 25px; /* Your design preserved */
+    border-radius: 25px;
     outline: none;
     -webkit-transition: 0.3s;
     transition: 0.3s;
     
-    /* CRITICAL: Strips Apple's default inner shadow & forced rounding while keeping your custom border-radius */
+    /* CRITICAL: Strips Apple's inner shadow and rounding off the input */
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;
@@ -156,7 +158,12 @@ textarea.glass-input {
     cursor: not-allowed;
     box-shadow: none;
 }
-.disabled-btn:hover { background: rgba(255, 255, 255, 0.1); -webkit-transform: none; transform: none; box-shadow: none; }
+.disabled-btn:hover { 
+    background: rgba(255, 255, 255, 0.1); 
+    -webkit-transform: none; 
+    transform: none; 
+    box-shadow: none; 
+}
 
 .warning-text { color: #f1c40f; font-size: 0.8rem; margin-top: 5px; display: block; }
 .warning-text.error { color: #ff4757; }
@@ -197,8 +204,10 @@ textarea.glass-input {
     display: flex;
     align-items: center;
     gap: 5px;
-    /* Prevents iOS overriding button styles */
+    
+    /* Strips default Apple button styling */
     -webkit-appearance: none;
+    -moz-appearance: none;
     appearance: none;
 }
 
