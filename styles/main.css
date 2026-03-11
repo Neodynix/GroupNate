@@ -19,19 +19,20 @@
 
 /* --- 1. Global Cross-Browser Reset & Performance Fix --- */
 html {
-    -webkit-text-size-adjust: 100%; /* Prevents iOS landscape text zoom */
+    -webkit-text-size-adjust: 100%; 
     -moz-text-size-adjust: 100%;
     text-size-adjust: 100%;
+    background-color: #1a1a2e; /* Safari fallback to prevent white flashes */
 }
 
 *, *::before, *::after {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    -webkit-tap-highlight-color: transparent; /* Removes tap highlight on mobile */
+    -webkit-tap-highlight-color: transparent; 
 }
 
-/* Aggressive Reset for Form Elements (Crucial for Safari/iOS) */
+/* Aggressive Reset for Form Elements */
 input, select, textarea, button {
     font-family: inherit;
     font-size: inherit;
@@ -40,36 +41,32 @@ input, select, textarea, button {
     padding: 0;
     border: none;
     background: transparent;
-    -webkit-appearance: none; /* Strips Apple default styling */
-    -moz-appearance: none;    /* Strips Firefox default styling */
+    -webkit-appearance: none; 
+    -moz-appearance: none;    
     appearance: none;
-    border-radius: 0;         /* Prevents Safari auto-rounding */
+    border-radius: 0;         
     outline: none;
 }
 
-/* Fix for IE/Edge removing the default arrow on select */
 select::-ms-expand {
     display: none;
 }
 
 body {
-    background: var(--bg-gradient);
-    background-attachment: fixed;
     min-height: 100vh;
     color: var(--text-main);
     overflow-x: hidden;
     position: relative;
     padding-bottom: 100px;
     font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-    /* Hardware acceleration base */
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
 }
 
 /* --- 2. GPU Acceleration & Anti-Flicker --- */
 .glass-header, .glass-panel, .glass-footer, .group-card, .side-menu, .blob, .preview-modal {
-    will-change: transform, backdrop-filter;
-    -webkit-transform: translateZ(0); /* Crucial for Safari rendering */
+    /* Removed 'will-change' to fix the Safari white blowout bug */
+    -webkit-transform: translateZ(0); 
     transform: translateZ(0); 
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
@@ -87,6 +84,8 @@ body {
     z-index: -1;
     overflow: hidden;
     pointer-events: none;
+    /* MOVED GRADIENT HERE: Fixes iOS Safari fixed background bug */
+    background: var(--bg-gradient);
 }
 
 .blob {
@@ -115,24 +114,22 @@ body {
 }
 
 /* --- Glassmorphism Base --- */
-.glass-header, .glass-panel, .glass-footer, .group-card, .ad-card, .preview-modal {
+.glass-header, .glass-panel, .glass-footer, .group-card, .ad-card {
     background: rgba(255, 255, 255, 0.12);
-    -webkit-backdrop-filter: blur(15px) saturate(150%); /* Safari required */
+    -webkit-backdrop-filter: blur(15px) saturate(150%);
     backdrop-filter: blur(15px) saturate(150%);
     border: 1px solid var(--glass-border);
     box-shadow: var(--glass-shadow);
-    /* Prevents blur bleeding outside rounded corners in Safari */
     overflow: hidden; 
 }
 
-/* Override overflow for specific elements if they need elements popping out */
 .glass-header, .glass-footer {
     overflow: visible;
 }
 
 /* --- Header --- */
 .glass-header {
-    position: -webkit-sticky; /* Safari sticky support */
+    position: -webkit-sticky; 
     position: sticky;
     top: 0;
     z-index: 1000;
@@ -164,7 +161,7 @@ body {
     transition: 0.3s;
     padding: 8px;
     border-radius: 50%;
-    color: inherit; /* Reset button color */
+    color: inherit; 
 }
 
 .icon-btn:hover, .hamburger:hover { 
@@ -187,7 +184,7 @@ body {
     -webkit-backdrop-filter: blur(25px) saturate(180%);
     backdrop-filter: blur(25px) saturate(180%);
     border-right: 1px solid var(--glass-border);
-    overflow-y: auto; /* Allow scrolling if menu is long */
+    overflow-y: auto; 
     -webkit-overflow-scrolling: touch;
 }
 
@@ -273,7 +270,6 @@ body {
     padding: 12px 25px;
     color: white;
     font-size: 1.1rem;
-    /* Reset applied globally, but ensuring no border/bg here */
     background: transparent; 
     border: none;
 }
@@ -332,6 +328,7 @@ body {
     display: flex;
     flex-direction: column;
     gap: 12px;
+    position: relative;
 }
 
 .filter-group label {
@@ -361,7 +358,6 @@ body {
 .fa-discord { color: var(--dc-color); }
 .fa-telegram { color: var(--tg-color); }
 
-/* Official Instagram Gradient (Cross-browser fix) */
 .fa-instagram {
     background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
     -webkit-background-clip: text;
@@ -375,7 +371,6 @@ body {
 .platform-icons i.fa-instagram.active {
     -webkit-filter: drop-shadow(0 0 12px rgba(225, 48, 108, 0.6));
     filter: drop-shadow(0 0 12px rgba(225, 48, 108, 0.6));
-    /* Force Safari to keep transparent fill */
     -webkit-text-fill-color: transparent; 
 }
 
@@ -388,6 +383,7 @@ body {
 select {
     width: 100%;
     padding: 14px 25px;
+    padding-right: 40px;
     background: rgba(0, 0, 0, 0.4);
     border: 1px solid var(--glass-border);
     color: white;
@@ -397,19 +393,8 @@ select {
     transition: 0.3s;
 }
 
-/* Custom dropdown arrow for select since we hid default */
-.filter-group {
-    position: relative;
-}
-select {
-    padding-right: 40px; /* Make room for custom arrow */
-}
-
 select:focus { border-color: var(--accent); }
-select option {
-    background: #1a1a2e;
-    color: white;
-}
+select option { background: #1a1a2e; color: white; }
 
 .apply-btn {
     padding: 15px;
@@ -758,19 +743,17 @@ select option {
     max-width: 480px;
     max-height: 85vh;
     
-    /* RESTORED: Your unique deeper glass styling */
     background: rgba(255, 255, 255, 0.1);
     -webkit-backdrop-filter: blur(20px) saturate(150%);
     backdrop-filter: blur(20px) saturate(150%);
     border: 1px solid var(--glass-border);
     border-radius: 25px;
-    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5); /* Deeper shadow restored */
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5); 
     
     display: flex;
     flex-direction: column;
     overflow: hidden;
     
-    /* Hardware acceleration for smooth popping */
     -webkit-transform: scale(1) translateY(0) translateZ(0);
     transform: scale(1) translateY(0) translateZ(0);
     -webkit-transition: -webkit-transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -815,15 +798,11 @@ select option {
     display: flex;
     flex-direction: column;
     gap: 20px;
-    /* iOS Momentum Scrolling */
     -webkit-overflow-scrolling: touch;
-    
-    /* Firefox Scrollbar */
     scrollbar-width: thin;
     scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
 }
 
-/* Chrome/Edge/Safari Scrollbar */
 .preview-scroll::-webkit-scrollbar {
     width: 6px;
 }
