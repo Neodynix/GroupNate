@@ -72,6 +72,16 @@
         </div>
 
         <main class="dashboard-container">
+            <div id="systemAnnouncement" class="announcement-banner" style="display: none;">
+                <div class="announcement-content">
+                    <i class="fa-solid fa-bullhorn pulse-icon"></i>
+                    <span id="announcementMessage">Loading announcement...</span>
+                </div>
+                <button class="close-announcement" onclick="document.getElementById('systemAnnouncement').style.display='none'">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
             <div id="view-manage" class="dashboard-view active dashboard-grid">
                 
                 <section class="control-panel glass-panel submit-section">
@@ -187,6 +197,21 @@
                 </div>
             </div>
         </main>
+
+        <nav class="bottom-nav">
+            <div class="nav-tab active" data-target="manage" onclick="switchView('manage', event)">
+                <i class="fa-solid fa-layer-group"></i>
+                <span>Manage</span>
+            </div>
+            <div class="nav-tab" data-target="subscriptions" onclick="switchView('subscriptions', event)">
+                <i class="fa-solid fa-crown"></i>
+                <span>Upgrade</span>
+            </div>
+            <div class="nav-tab" data-target="notifications" onclick="switchView('notifications', event)">
+                <i class="fa-solid fa-bell"></i>
+                <span>Alerts</span>
+            </div>
+        </nav>
     </div> 
     
     <div id="paymentModal" class="overlay hidden">
@@ -217,4 +242,5 @@
     <script src="scripts/dashboard-ui.js"></script>
     <script src="scripts/payment.js"></script>
     <script src="scripts/data.js"></script>
-</body>                                     </html>
+</body>
+    </html>
