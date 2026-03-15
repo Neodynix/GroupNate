@@ -1,6 +1,130 @@
 /* ==========================================
-   Admin Specific UI (Relies on main.css for Glassmorphism)
+   Admin Specific UI
+   (Inherits core Glassmorphism from main.css)
    ========================================== */
+
+/* --- Main Layout & Views --- */
+.admin-main {
+    flex-grow: 1;
+    padding: 20px;
+    padding-bottom: 100px; /* Space for the bottom nav */
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch; /* Smooth momentum scrolling on iOS */
+}
+
+.header-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.admin-view {
+    display: none;
+    -webkit-animation: fadeInView 0.4s ease forwards;
+    animation: fadeInView 0.4s ease forwards;
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+}
+
+.admin-view.active {
+    display: block;
+}
+
+@-webkit-keyframes fadeInView {
+    from { opacity: 0; -webkit-transform: translateY(10px); transform: translateY(10px); }
+    to { opacity: 1; -webkit-transform: translateY(0); transform: translateY(0); }
+}
+
+@keyframes fadeInView {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* --- Admin Sidebar --- */
+.admin-sidebar {
+    position: fixed;
+    top: 0;
+    left: -300px;
+    width: 260px;
+    height: 100%;
+    z-index: 2000;
+    -webkit-transition: 0.3s ease;
+    transition: 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid var(--glass-border);
+    padding: 0;
+}
+
+.admin-sidebar.open { 
+    left: 0; 
+}
+
+.sidebar-header {
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--glass-border);
+}
+
+.nav-menu {
+    list-style: none;
+    padding: 15px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.nav-item {
+    padding: 12px 15px;
+    border-radius: 10px;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    cursor: pointer;
+    -webkit-transition: 0.3s;
+    transition: 0.3s;
+}
+
+.nav-item:hover, .nav-item.active {
+    background: rgba(233, 69, 96, 0.1);
+    color: var(--accent);
+}
+
+.sidebar-footer {
+    padding: 20px;
+    border-top: 1px solid var(--glass-border);
+}
+
+/* --- Admin Specific Buttons --- */
+.action-btn { 
+    background: var(--accent); 
+    color: white; 
+    border: none; 
+    padding: 14px; 
+    border-radius: 12px; 
+    width: 100%; 
+    font-weight: bold; 
+    font-size: 1rem; 
+    cursor: pointer; 
+    -webkit-transition: 0.3s; 
+    transition: 0.3s; 
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.action-btn:hover {
+    -webkit-filter: brightness(1.1);
+    filter: brightness(1.1);
+    -webkit-transform: translateY(-2px);
+    transform: translateY(-2px);
+}
 
 /* --- Stats Grid --- */
 .stats-grid { 
@@ -21,6 +145,7 @@
     display: flex; 
     align-items: center; 
     gap: 15px; 
+    border-radius: 20px;
 }
 
 .stat-icon { 
@@ -34,7 +159,7 @@
 }
 
 .stat-icon.users { background: rgba(52, 152, 219, 0.1); color: #3498db; }
-.stat-icon.revenue { background: rgba(46, 213, 115, 0.1); color: var(--wa-color); }
+.stat-icon.revenue { background: rgba(46, 213, 115, 0.1); color: #2ed573; }
 .stat-icon.groups { background: rgba(155, 89, 182, 0.1); color: #9b59b6; }
 
 .stat-info h3 { 
@@ -43,6 +168,7 @@
     text-transform: uppercase; 
     margin-bottom: 5px;
 }
+
 .stat-info p { 
     font-size: 1.5rem; 
     font-weight: bold; 
@@ -53,7 +179,8 @@
 /* --- Responsive Tables --- */
 .table-container { 
     overflow-x: auto; 
-    padding: 0; /* Remove padding so table hits the edges of the glass panel */
+    padding: 0; 
+    border-radius: 15px;
     -webkit-overflow-scrolling: touch; 
 }
 
@@ -61,7 +188,7 @@ table {
     width: 100%; 
     border-collapse: collapse; 
     text-align: left; 
-    min-width: 500px; /* Forces scroll on small screens instead of squishing */
+    min-width: 500px; /* Forces scroll on small phones so it doesn't squish */
 }
 
 th, td { 
@@ -85,6 +212,7 @@ th {
     font-size: 0.75rem; 
     font-weight: bold; 
 }
+
 .badge.active { background: rgba(46, 213, 115, 0.15); color: #2ed573; border: 1px solid #2ed573; }
 .badge.suspended { background: rgba(255, 71, 87, 0.15); color: #ff4757; border: 1px solid #ff4757; }
 .badge.free { background: rgba(255, 255, 255, 0.1); color: white; border: 1px solid var(--glass-border); }
@@ -112,6 +240,7 @@ th {
     display: flex; 
     justify-content: center; 
     align-items: center; 
+    -webkit-transition: 0.3s;
     transition: 0.3s;
     -webkit-appearance: none;
     appearance: none;
@@ -121,3 +250,51 @@ th {
 .btn-icon.edit:hover { border-color: #3498db; color: #3498db; }
 .btn-icon.delete:hover { border-color: #ff4757; color: #ff4757; background: rgba(255, 71, 87, 0.1); }
 .btn-icon.reset:hover { border-color: #f1c40f; color: #f1c40f; background: rgba(241, 196, 15, 0.1); }
+
+/* --- Bottom Nav (Frosted Glass Theme) --- */
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    
+    /* True Glassmorphism */
+    background: rgba(255, 255, 255, 0.12);
+    -webkit-backdrop-filter: blur(15px) saturate(150%);
+    backdrop-filter: blur(15px) saturate(150%);
+    
+    border-top: 1px solid var(--glass-border);
+    box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.3);
+    border-radius: 25px 25px 0 0;
+    
+    display: flex;
+    justify-content: space-around;
+    padding: 12px 0;
+    padding-bottom: calc(12px + env(safe-area-inset-bottom));
+    z-index: 1000;
+    
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+}
+
+.nav-tab {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    color: var(--text-muted);
+    cursor: pointer;
+    -webkit-transition: 0.3s;
+    transition: 0.3s;
+    width: 33%;
+    position: relative;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.nav-tab i { font-size: 1.2rem; }
+.nav-tab span { font-size: 0.7rem; font-weight: 600; }
+.nav-tab.active { 
+    color: var(--accent); 
+    -webkit-transform: translateY(-2px);
+    transform: translateY(-2px); 
+   }
