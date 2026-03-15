@@ -8,8 +8,7 @@
     flex-direction: column; 
     height: 100vh; 
     width: 100%; 
-    position: relative;
-    z-index: 1; 
+    /* CRITICAL FIX: Removed position & z-index so the Sidebar can float ABOVE the dark overlay! */
 }
 
 /* Hide admin email on small phones to protect header layout */
@@ -55,7 +54,6 @@
 /* --- Sidebar (Hamburger Menu) FIX --- */
 .admin-sidebar { 
     position: fixed; top: 0; left: -300px; width: 260px; height: 100%; 
-    /* CRITICAL: Forces menu above the dark overlay so it's clear and clickable */
     z-index: 9999 !important; 
     transition: 0.3s ease; display: flex; flex-direction: column; 
     padding: 0; border-radius: 0; 
@@ -67,7 +65,6 @@
     
     padding-bottom: 90px; 
     
-    /* Safari Fix: Stops the blur from glitching its own text */
     -webkit-transform: translateZ(0);
     transform: translateZ(0);
 }
@@ -104,13 +101,13 @@
 .stat-info h3 { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 5px; }
 .stat-info p { font-size: 1.5rem; font-weight: bold; margin: 0; }
 
-/* --- Responsive Tables FIX (Rounded Corners) --- */
+/* --- Responsive Tables FIX (Scroll + Rounded Corners) --- */
 .table-container { 
-    overflow-x: auto; 
+    overflow-x: auto; /* CRITICAL FIX: Brings back horizontal scrolling */
+    overflow-y: hidden;
     padding: 0; 
     -webkit-overflow-scrolling: touch; 
-    border-radius: 20px !important; /* Forces the container to be round */
-    overflow: hidden; /* CRITICAL: Clips the square table inside to match the round corners */
+    border-radius: 20px !important; 
     border: 1px solid rgba(255,255,255,0.1);
 }
 table { width: 100%; border-collapse: collapse; text-align: left; min-width: 500px; }
