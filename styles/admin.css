@@ -23,7 +23,7 @@
     border: 1px solid rgba(255,255,255,0.1);
     color: white;
     padding: 15px 20px;
-    border-radius: 25px !important; /* Perfect pill shape */
+    border-radius: 25px !important; 
     outline: none;
     -webkit-appearance: none;
     -moz-appearance: none;
@@ -36,7 +36,7 @@
     color: white;
     border: none;
     padding: 15px;
-    border-radius: 25px !important; /* Perfect pill shape */
+    border-radius: 25px !important; 
     font-weight: bold;
     font-size: 1rem;
     cursor: pointer;
@@ -52,20 +52,24 @@
     border-radius: 24px !important;
 }
 
-/* --- Sidebar (Hamburger Menu) with Beautiful Blur --- */
+/* --- Sidebar (Hamburger Menu) FIX --- */
 .admin-sidebar { 
     position: fixed; top: 0; left: -300px; width: 260px; height: 100%; 
-    z-index: 2000; transition: 0.3s ease; display: flex; flex-direction: column; 
+    /* CRITICAL: Forces menu above the dark overlay so it's clear and clickable */
+    z-index: 9999 !important; 
+    transition: 0.3s ease; display: flex; flex-direction: column; 
     padding: 0; border-radius: 0; 
     
-    /* Deep Glass Blur */
-    background: rgba(15, 20, 35, 0.65); 
+    background: rgba(15, 20, 35, 0.85); 
     -webkit-backdrop-filter: blur(25px) saturate(150%);
     backdrop-filter: blur(25px) saturate(150%);
     border-right: 1px solid rgba(255,255,255,0.1);
     
-    /* CRITICAL: Lifts the Logout button above the bottom nav */
     padding-bottom: 90px; 
+    
+    /* Safari Fix: Stops the blur from glitching its own text */
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
 }
 .admin-sidebar.open { left: 0; }
 .sidebar-header { padding: 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); }
@@ -77,7 +81,7 @@
 /* --- Main Area Layout --- */
 .admin-main { 
     flex-grow: 1; padding: 20px; overflow-y: auto; 
-    padding-bottom: 100px; /* Space for bottom nav */
+    padding-bottom: 100px; 
     -webkit-overflow-scrolling: touch; 
 }
 .header-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
@@ -92,7 +96,7 @@
 /* --- Stats Grid --- */
 .stats-grid { display: grid; grid-template-columns: 1fr; gap: 15px; margin-bottom: 25px; }
 @media (min-width: 600px) { .stats-grid { grid-template-columns: 1fr 1fr 1fr; } }
-.stat-card { padding: 20px; display: flex; align-items: center; gap: 15px; }
+.stat-card { padding: 20px; display: flex; align-items: center; gap: 15px; border-radius: 20px; }
 .stat-icon { width: 50px; height: 50px; border-radius: 12px; display: flex; justify-content: center; align-items: center; font-size: 1.2rem; }
 .stat-icon.users { background: rgba(52, 152, 219, 0.1); color: #3498db; }
 .stat-icon.revenue { background: rgba(46, 213, 115, 0.1); color: #2ed573; }
@@ -100,8 +104,15 @@
 .stat-info h3 { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 5px; }
 .stat-info p { font-size: 1.5rem; font-weight: bold; margin: 0; }
 
-/* --- Responsive Tables --- */
-.table-container { overflow-x: auto; padding: 0; -webkit-overflow-scrolling: touch; }
+/* --- Responsive Tables FIX (Rounded Corners) --- */
+.table-container { 
+    overflow-x: auto; 
+    padding: 0; 
+    -webkit-overflow-scrolling: touch; 
+    border-radius: 20px !important; /* Forces the container to be round */
+    overflow: hidden; /* CRITICAL: Clips the square table inside to match the round corners */
+    border: 1px solid rgba(255,255,255,0.1);
+}
 table { width: 100%; border-collapse: collapse; text-align: left; min-width: 500px; }
 th, td { padding: 15px 20px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.9rem; white-space: nowrap; }
 th { color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; background: rgba(0,0,0,0.2); letter-spacing: 1px; }
