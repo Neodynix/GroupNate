@@ -93,10 +93,18 @@ window.switchView = (viewName, el) => {
         setTimeout(() => selectedView.classList.add("active"), 10);
     }
     
+    // Update Side Menu active state
     document.querySelectorAll(".nav-link").forEach(l => l.classList.remove("active"));
     if (el) {
         const linkElement = el.target ? (el.target.closest('.nav-link') || el.currentTarget) : el.currentTarget;
-        if (linkElement) linkElement.classList.add("active");
+        if (linkElement && linkElement.classList.contains('nav-link')) linkElement.classList.add("active");
+    }
+    
+    // Update Bottom Nav active state
+    document.querySelectorAll(".nav-tab").forEach(t => t.classList.remove("active"));
+    if (el) {
+         const tabElement = el.target ? (el.target.closest('.nav-tab') || el.currentTarget) : el.currentTarget;
+         if (tabElement && tabElement.classList.contains('nav-tab')) tabElement.classList.add("active");
     }
     
     const menu = document.getElementById("dashboardMenu");
@@ -171,15 +179,10 @@ function setupFormListeners() {
 
     subCategory?.addEventListener("change", function() {
         const premiumWarning = document.getElementById("premiumWarning");
-        const btn = document.getElementById("submitBtn");
         
         if (window.premiumCategories.includes(this.value)) {
             premiumWarning?.classList.remove("hidden");
-            if(btn) {
-                // Changing UI to alert users that this requires Pro, but not blocking them here.
-                // The actual blocking will happen in data.js based on their subscription status.
-                premiumWarning.innerHTML = '<i class="fa-solid fa-lock"></i> Premium Category (Requires Pro/Agency)';
-            }
+            premiumWarning.innerHTML = '<i class="fa-solid fa-lock"></i> Premium Category (Requires Pro/Agency)';
         } else {
             premiumWarning?.classList.add("hidden");
         }
@@ -261,6 +264,28 @@ window.validateForm = function() {
     const isNameValid = nameSuccess ? !nameSuccess.classList.contains("hidden") : true;
     const isLinkValid = linkSuccess ? !linkSuccess.classList.contains("hidden") : true;
     const isDescValid = descSuccess ? !descSuccess.classList.contains("hidden") : true;
+
+    // --- NEW: Subscribe Button Override Logic ---
+    const isPremiumCategory = isCategorySet && window.premiumCategories.includes(subCategory.value);
+    const isFreePlan = window.userPlan === 'Free' || !window.userPlan;
+
+    if (isPremiumCategory && isFreePlan) {
+        btn.disabled = false;
+        btn.classList.remove("disabled-btn");
+        btn.innerText = "Subscribe to Post";
+        btn.type = "button"; // Stop the form from submitting
+        btn.onclick = (e) => { 
+            e.preventDefault(); 
+            switchView('subscriptions', null); 
+        };
+        return; // Halt standard validation so button stays active
+    } else {
+        // Reset button behavior to normal form submission
+        btn.innerText = "Post Group";
+        btn.type = "submit";
+        btn.onclick = null; 
+    }
+    // ---------------------------------------------
 
     if (isPlatformSet && isCategorySet && isCountrySet && isCitySet && isNameValid && isLinkValid && isDescValid) {
         btn.disabled = false;
