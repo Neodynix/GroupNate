@@ -43,6 +43,7 @@ window.populateCommunitiesTable = function(communities) {
         tbody.innerHTML += `
             <tr>
                 <td>${community.name || 'Unnamed Community'}</td>
+                <td>--</td>
                 <td><span class="badge active">Active</span></td>
                 <td>
                     <div class="action-btns">
@@ -54,7 +55,7 @@ window.populateCommunitiesTable = function(communities) {
     });
     
     if (communities.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color: var(--text-muted);">No communities found.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color: var(--text-muted);">No communities found.</td></tr>';
     }
 };
 
@@ -106,9 +107,9 @@ window.populateAnnouncementsTable = function(announcements) {
 
 window.toggleSidebar = function() { 
     const menu = document.getElementById('sidebar');
-    if (menu) {
-        menu.classList.toggle('active');
-    }
+    const overlay = document.getElementById('sidebarOverlay');
+    if (menu) menu.classList.toggle('open');
+    if (overlay) overlay.classList.toggle('open');
 };
 
 window.openModal = function(id) { 
@@ -143,19 +144,22 @@ window.switchView = function(viewName, clickedElement) {
         }); 
     }
     
-    document.querySelectorAll('.dashboard-view').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.admin-view').forEach(el => el.classList.remove('active'));
     document.getElementById('view-' + viewName).classList.add('active');
 };
 
 window.showLoader = function(text = "Loading...") { 
     const loader = document.getElementById('adminLoader'); 
-    document.getElementById('loaderText').innerText = text; 
-    loader.style.display = 'flex'; 
-    setTimeout(() => loader.style.opacity = '1', 10); 
+    if (loader) {
+        document.getElementById('loaderText').innerText = text; 
+        loader.style.display = 'flex'; 
+        loader.classList.remove('hidden');
+    }
 };
 
 window.hideLoader = function() { 
     const loader = document.getElementById('adminLoader'); 
-    loader.style.opacity = '0'; 
-    setTimeout(() => loader.style.display = 'none', 500); 
+    if (loader) {
+        loader.classList.add('hidden');
+    }
 };
