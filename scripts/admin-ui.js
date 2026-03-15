@@ -103,13 +103,21 @@ window.populateAnnouncementsTable = function(announcements) {
 };
 
 // --- Menus, Modals, Loaders ---
+
 window.toggleSidebar = function() { 
-    document.getElementById('sidebar').classList.toggle('open'); 
-    document.getElementById('sidebarOverlay').classList.toggle('open'); 
+    const menu = document.getElementById('sidebar');
+    if (menu) {
+        menu.classList.toggle('active');
+    }
 };
 
-window.openModal = function(id) { document.getElementById(id).classList.remove('hidden'); };
-window.closeModal = function(id) { document.getElementById(id).classList.add('hidden'); };
+window.openModal = function(id) { 
+    document.getElementById(id).classList.remove('hidden'); 
+};
+
+window.closeModal = function(id) { 
+    document.getElementById(id).classList.add('hidden'); 
+};
 
 window.openPlanModal = function(userId, email, currentPlan) {
     document.getElementById('editPlanUserId').value = userId;
@@ -129,11 +137,13 @@ window.switchView = function(viewName, clickedElement) {
         clickedElement.classList.add('active'); 
         document.querySelectorAll('.nav-tab').forEach(el => { 
             el.classList.remove('active'); 
-            if(el.getAttribute('onclick').includes(viewName)) el.classList.add('active'); 
+            if(el.getAttribute('onclick') && el.getAttribute('onclick').includes(viewName)) {
+                el.classList.add('active'); 
+            }
         }); 
     }
     
-    document.querySelectorAll('.admin-view').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.dashboard-view').forEach(el => el.classList.remove('active'));
     document.getElementById('view-' + viewName).classList.add('active');
 };
 
@@ -149,4 +159,3 @@ window.hideLoader = function() {
     loader.style.opacity = '0'; 
     setTimeout(() => loader.style.display = 'none', 500); 
 };
-
