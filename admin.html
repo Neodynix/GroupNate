@@ -6,74 +6,106 @@
     <title>GroupNate | Admin Portal</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="styles/main.css"> 
     <link rel="stylesheet" href="styles/admin.css">
+    
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
-    <div id="adminLoader">
-        <i class="fa-solid fa-shield-halved fa-beat"></i>
-        <h2 id="loaderText">Verifying...</h2>
+    <div class="background-blobs">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
     </div>
 
-    <div id="adminLoginScreen" class="hidden">
-        <div class="login-card glass-panel">
-            <i class="fa-solid fa-lock" style="font-size: 2.5rem; color: var(--accent); margin-bottom: 20px;"></i>
-            <h2>Admin Access</h2>
-            <p style="color: var(--text-muted); margin-bottom: 25px; font-size: 0.9rem;">Restricted area. Please sign in.</p>
+    <div id="adminLoader" class="overlay gatekeeper-overlay" style="z-index: 99999;">
+        <div style="text-align: center; color: white;">
+            <i class="fa-solid fa-shield-halved fa-beat" style="font-size: 3rem; color: var(--accent); margin-bottom: 15px;"></i>
+            <h2 id="loaderText">Verifying...</h2>
+        </div>
+    </div>
+
+    <div id="adminLoginScreen" class="overlay gatekeeper-overlay hidden">
+        <div class="preview-modal glass-panel" style="max-width: 400px; padding: 40px 30px; margin: auto;">
+            <div style="text-align: center; margin-bottom: 20px;">
+                <i class="fa-solid fa-lock" style="font-size: 2.5rem; color: var(--accent);"></i>
+            </div>
+            <h2 style="text-align: center; margin-bottom: 10px;">Admin Access</h2>
+            <p style="text-align: center; color: var(--text-muted); margin-bottom: 25px; font-size: 0.9rem;">Restricted area. Please sign in.</p>
+            
             <form id="adminLoginForm">
-                <input type="email" id="adminEmail" class="glass-input" placeholder="Admin Email" required>
-                <input type="password" id="adminPassword" class="glass-input" placeholder="Password" required>
-                <button type="submit" class="action-btn" id="loginBtn" style="margin-top: 15px;">Login to Portal</button>
+                <div class="filter-group" style="margin-bottom: 15px;">
+                    <input type="email" id="adminEmail" class="glass-input" placeholder="Admin Email" required>
+                </div>
+                <div class="filter-group" style="margin-bottom: 20px;">
+                    <input type="password" id="adminPassword" class="glass-input" placeholder="Password" required>
+                </div>
+                <button type="submit" class="apply-btn full-width" id="loginBtn" style="margin-top: 5px;">Login to Portal</button>
             </form>
-            <p id="loginError" style="color: #ff4757; margin-top: 15px; font-size: 0.85rem; display: none;"></p>
+            <p id="loginError" style="color: #ff4757; text-align: center; margin-top: 15px; font-size: 0.85rem; display: none;"></p>
         </div>
     </div>
 
     <div id="adminDashboardApp" class="hidden">
         
-        <header class="admin-header">
-            <button class="menu-btn" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
-            <div class="brand">GroupNate <span>ADMIN</span></div>
-            <div class="user-profile">
-                <i class="fa-solid fa-circle-user"></i>
-                <span id="headerAdminEmail">admin@neodynix.com</span>
+        <nav class="glass-header">
+            <div class="nav-left">
+                <div class="hamburger" onclick="window.toggleSidebar()">
+                    <i class="fa-solid fa-bars"></i>
+                </div>
+                <div class="logo">GroupNate <span style="color:var(--accent); font-size: 0.8rem;">ADMIN</span></div>
             </div>
-        </header>
+            <div class="nav-right">
+                <div class="user-profile-wrapper">
+                    <div class="user-circle" style="background: #3498db;"><i class="fa-solid fa-shield-halved"></i></div>
+                </div>
+            </div>
+        </nav>
 
-        <aside class="admin-sidebar" id="sidebar">
-            <div class="sidebar-header">
-                <h3>Admin Menu</h3>
-                <button class="close-btn" onclick="toggleSidebar()"><i class="fa-solid fa-xmark"></i></button>
-            </div>
+        <div class="side-menu glass-panel" id="sidebar">
+            <div class="close-btn" onclick="window.toggleSidebar()">&times;</div>
+            <h3 style="margin-bottom: 20px; padding-left: 15px; color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase;">Menu</h3>
             <ul class="nav-menu">
-                <li class="nav-item" onclick="switchView('dashboard', this); toggleSidebar();"><i class="fa-solid fa-chart-pie"></i> Overview</li>
-                <li class="nav-item" onclick="switchView('users', this); toggleSidebar();"><i class="fa-solid fa-users"></i> Users</li>
-                <li class="nav-item" onclick="switchView('transactions', this); toggleSidebar();"><i class="fa-solid fa-money-bill-transfer"></i> Ledger</li>
-                <li class="nav-item" onclick="switchView('groups', this); toggleSidebar();"><i class="fa-solid fa-cubes"></i> Groups</li>
-                <li class="nav-item" onclick="switchView('announcements', this); toggleSidebar();"><i class="fa-solid fa-bullhorn"></i> Announcements</li>
+                <li><a href="#" class="nav-link active" onclick="window.switchView('dashboard', event); window.toggleSidebar();"><i class="fa-solid fa-chart-pie"></i> Overview</a></li>
+                <li><a href="#" class="nav-link" onclick="window.switchView('users', event); window.toggleSidebar();"><i class="fa-solid fa-users"></i> Users</a></li>
+                <li><a href="#" class="nav-link" onclick="window.switchView('transactions', event); window.toggleSidebar();"><i class="fa-solid fa-money-bill-transfer"></i> Ledger</a></li>
+                <li><a href="#" class="nav-link" onclick="window.switchView('groups', event); window.toggleSidebar();"><i class="fa-solid fa-cubes"></i> Groups</a></li>
+                <li><a href="#" class="nav-link" onclick="window.switchView('announcements', event); window.toggleSidebar();"><i class="fa-solid fa-bullhorn"></i> Announcements</a></li>
+                <li style="margin-top: 20px;"><a href="#" style="color: #ff4757;" onclick="window.adminLogout()"><i class="fa-solid fa-right-from-bracket"></i> Logout</a></li>
             </ul>
-            <div class="sidebar-footer">
-                <button class="logout-btn" onclick="adminLogout()"><i class="fa-solid fa-arrow-right-from-bracket"></i> Logout</button>
-            </div>
-        </aside>
+        </div>
 
-        <main class="admin-main">
-            <div id="view-dashboard" class="admin-view active">
-                <div class="header-actions"><h1>Overview</h1></div>
+        <main class="dashboard-container">
+            
+            <div id="view-dashboard" class="dashboard-view active">
+                <h2 style="margin-bottom: 20px;">System Overview</h2>
                 <div class="stats-grid">
-                    <div class="stat-card"><div class="stat-icon users"><i class="fa-solid fa-user-group"></i></div><div class="stat-info"><h3>Total Users</h3><p id="statTotalUsers">--</p></div></div>
-                    <div class="stat-card"><div class="stat-icon revenue"><i class="fa-solid fa-dollar-sign"></i></div><div class="stat-info"><h3>Monthly Revenue</h3><p id="statMRR">$0.00</p></div></div>
-                    <div class="stat-card"><div class="stat-icon groups"><i class="fa-solid fa-cube"></i></div><div class="stat-info"><h3>Active Groups</h3><p id="statTotalGroups">--</p></div></div>
+                    <div class="stat-card glass-panel">
+                        <div class="stat-icon users"><i class="fa-solid fa-user-group"></i></div>
+                        <div class="stat-info"><h3>Total Users</h3><p id="statTotalUsers">--</p></div>
+                    </div>
+                    <div class="stat-card glass-panel">
+                        <div class="stat-icon revenue"><i class="fa-solid fa-dollar-sign"></i></div>
+                        <div class="stat-info"><h3>Monthly Revenue</h3><p id="statMRR">$0.00</p></div>
+                    </div>
+                    <div class="stat-card glass-panel">
+                        <div class="stat-icon groups"><i class="fa-solid fa-cube"></i></div>
+                        <div class="stat-info"><h3>Active Groups</h3><p id="statTotalGroups">--</p></div>
+                    </div>
                 </div>
             </div>
 
-            <div id="view-users" class="admin-view">
-                <div class="header-actions">
-                    <h1>Users</h1>
-                    <div class="search-bar"><i class="fa-solid fa-search"></i><input type="text" id="userSearch" placeholder="Search email..."></div>
+            <div id="view-users" class="dashboard-view">
+                <div class="header-actions" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+                    <h2>Users</h2>
+                    <div id="searchContainer" class="control-panel" style="margin-bottom: 0; padding: 5px 15px; width: 100%; max-width: 300px;">
+                        <i class="fa-solid fa-search" style="color: var(--text-muted);"></i>
+                        <input type="text" id="userSearch" placeholder="Search email..." style="border: none; background: transparent; color: white; outline: none; padding-left: 10px; width: 100%;">
+                    </div>
                 </div>
-                <div class="table-container">
+                <div class="control-panel glass-panel table-container">
                     <table>
                         <thead><tr><th>Email</th><th>ID</th><th>Plan</th><th>Actions</th></tr></thead>
                         <tbody id="allUsersTable"></tbody>
@@ -81,9 +113,9 @@
                 </div>
             </div>
 
-            <div id="view-transactions" class="admin-view">
-                <div class="header-actions"><h1>Ledger</h1></div>
-                <div class="table-container">
+            <div id="view-transactions" class="dashboard-view">
+                <h2 style="margin-bottom: 20px;">Financial Ledger</h2>
+                <div class="control-panel glass-panel table-container">
                     <table>
                         <thead><tr><th>Date</th><th>Ref ID</th><th>Amount</th><th>Status</th></tr></thead>
                         <tbody id="transactionsTable"></tbody>
@@ -91,22 +123,22 @@
                 </div>
             </div>
 
-            <div id="view-groups" class="admin-view">
-                <div class="header-actions"><h1>Platform Groups</h1></div>
-                <div class="table-container">
+            <div id="view-groups" class="dashboard-view">
+                <h2 style="margin-bottom: 20px;">Platform Groups</h2>
+                <div class="control-panel glass-panel table-container">
                     <table>
-                        <thead><tr><th>Group Name</th><th>Members</th><th>Status</th><th>Actions</th></tr></thead>
+                        <thead><tr><th>Group Name</th><th>Status</th><th>Actions</th></tr></thead>
                         <tbody id="groupsTable"></tbody>
                     </table>
                 </div>
             </div>
 
-            <div id="view-announcements" class="admin-view">
-                <div class="header-actions">
-                    <h1>System Announcements</h1>
-                    <button class="action-btn" onclick="openModal('announcementModal')" style="width: auto; padding: 10px 20px;">+ New Announcement</button>
+            <div id="view-announcements" class="dashboard-view">
+                <div class="header-actions" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2>Announcements</h2>
+                    <button class="apply-btn" onclick="window.openModal('announcementModal')" style="margin-top: 0; padding: 10px 20px; width: auto; font-size: 0.85rem;"><i class="fa-solid fa-plus"></i> New</button>
                 </div>
-                <div class="table-container">
+                <div class="control-panel glass-panel table-container">
                     <table>
                         <thead><tr><th>Message</th><th>Date Posted</th><th>Actions</th></tr></thead>
                         <tbody id="announcementsTable"></tbody>
@@ -116,46 +148,52 @@
         </main>
 
         <nav class="bottom-nav">
-            <div class="nav-tab active" onclick="switchView('dashboard', this)"><i class="fa-solid fa-chart-pie"></i><span>Home</span></div>
-            <div class="nav-tab" onclick="switchView('users', this)"><i class="fa-solid fa-users"></i><span>Users</span></div>
-            <div class="nav-tab" onclick="switchView('transactions', this)"><i class="fa-solid fa-money-bill-transfer"></i><span>Ledger</span></div>
-            <div class="nav-tab" onclick="switchView('groups', this)"><i class="fa-solid fa-cubes"></i><span>Groups</span></div>
-            <div class="nav-tab" onclick="switchView('announcements', this)"><i class="fa-solid fa-bullhorn"></i><span>Alerts</span></div>
+            <div class="nav-tab active" data-target="dashboard" onclick="window.switchView('dashboard', event)">
+                <i class="fa-solid fa-chart-pie"></i><span>Home</span>
+            </div>
+            <div class="nav-tab" data-target="users" onclick="window.switchView('users', event)">
+                <i class="fa-solid fa-users"></i><span>Users</span>
+            </div>
+            <div class="nav-tab" data-target="transactions" onclick="window.switchView('transactions', event)">
+                <i class="fa-solid fa-money-bill-transfer"></i><span>Ledger</span>
+            </div>
         </nav>
     </div>
 
-    <div class="modal-overlay hidden" id="planModal">
-        <div class="modal-content">
-            <h3>Edit User Plan</h3>
+    <div class="overlay hidden" id="planModal">
+        <div class="preview-modal glass-panel" style="max-width: 400px; padding: 30px;">
+            <div class="preview-header" style="border: none; padding: 0 0 15px 0;">
+                <h3 style="margin: 0;">Edit User Plan</h3>
+                <div class="close-modal" onclick="window.closeModal('planModal')">&times;</div>
+            </div>
             <p id="editPlanUserEmail" style="color: var(--text-muted); margin-bottom: 15px; font-size: 0.9rem;"></p>
             <input type="hidden" id="editPlanUserId">
-            <select id="newPlanSelect" class="glass-input">
-                <option value="Free Tier">Free Tier</option>
-                <option value="Creator Pro">Creator Pro ($5)</option>
-                <option value="Agency">Agency ($15)</option>
-            </select>
-            <div style="display: flex; gap: 10px; margin-top: 15px;">
-                <button class="action-btn" style="background: var(--text-muted);" onclick="closeModal('planModal')">Cancel</button>
-                <button class="action-btn" onclick="saveUserPlan()">Save Plan</button>
+            <div class="filter-group">
+                <select id="newPlanSelect" class="glass-input">
+                    <option value="Free Tier">Free Tier</option>
+                    <option value="Creator Pro">Creator Pro ($5)</option>
+                    <option value="Agency">Agency ($15)</option>
+                </select>
             </div>
+            <button class="apply-btn full-width" onclick="window.saveUserPlan()">Save Changes</button>
         </div>
     </div>
 
-    <div class="modal-overlay hidden" id="announcementModal">
-        <div class="modal-content">
-            <h3>New Announcement</h3>
-            <textarea id="announcementText" class="glass-input" placeholder="Enter your system-wide message here..." style="min-height: 100px;"></textarea>
-            <div style="display: flex; gap: 10px; margin-top: 15px;">
-                <button class="action-btn" style="background: var(--text-muted);" onclick="closeModal('announcementModal')">Cancel</button>
-                <button class="action-btn" onclick="saveAnnouncement()">Post Alert</button>
+    <div class="overlay hidden" id="announcementModal">
+        <div class="preview-modal glass-panel" style="max-width: 400px; padding: 30px;">
+            <div class="preview-header" style="border: none; padding: 0 0 15px 0;">
+                <h3 style="margin: 0;">New Announcement</h3>
+                <div class="close-modal" onclick="window.closeModal('announcementModal')">&times;</div>
             </div>
+            <textarea id="announcementText" class="glass-input" placeholder="Enter your system-wide message here..." rows="4"></textarea>
+            <button class="apply-btn full-width" onclick="window.saveAnnouncement()">Post Alert</button>
         </div>
     </div>
 
-    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="window.toggleSidebar()"></div>
 
     <script src="scripts/admin-ui.js"></script>
     <script src="scripts/admin-data.js"></script>
     <script src="scripts/admin-auth.js"></script>
 </body>
-                </html>
+            </html>
