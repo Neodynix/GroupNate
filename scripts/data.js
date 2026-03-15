@@ -57,6 +57,23 @@ window.fetchDashboardData = async function() {
     } else {
         document.getElementById('notifBadge').innerText = '0';
     }
+
+    // --- NEW: 4. Fetch System Announcement ---
+    const { data: announcementData, error: annError } = await window.supabaseClient
+        .from('announcements')
+        .select('message')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single(); // Gets the single most recent announcement
+
+    const banner = document.getElementById('systemAnnouncement');
+    if (announcementData && announcementData.message && banner) {
+        document.getElementById('announcementMessage').innerText = announcementData.message;
+        banner.style.display = 'flex';
+    } else if (banner) {
+        banner.style.display = 'none';
+    }
+    // ------------------------------------------
 };
 
 // Form Submission logic
@@ -151,4 +168,4 @@ function renderNotifications(notifs) {
             </div>
         `;
     });
-    }
+        }
