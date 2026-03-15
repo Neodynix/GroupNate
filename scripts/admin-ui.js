@@ -103,15 +103,25 @@ window.populateAnnouncementsTable = function(announcements) {
     }
 };
 
-// --- Menus, Modals, Loaders ---
+// --- DOM Controls ---
 
+// Toggle the sidebar using your original 'open' classes
 window.toggleSidebar = function() { 
-    const menu = document.getElementById('sidebar');
+    const sidebar = document.getElementById('sidebar');
     const overlay = document.getElementById('sidebarOverlay');
-    if (menu) menu.classList.toggle('open');
-    if (overlay) overlay.classList.toggle('open');
+    
+    if (sidebar) sidebar.classList.toggle('open');
+    
+    if (overlay) {
+        if (sidebar.classList.contains('open')) {
+            overlay.style.display = 'block';
+        } else {
+            overlay.style.display = 'none';
+        }
+    }
 };
 
+// Toggle modals using your original 'hidden' class
 window.openModal = function(id) { 
     document.getElementById(id).classList.remove('hidden'); 
 };
@@ -127,15 +137,20 @@ window.openPlanModal = function(userId, email, currentPlan) {
     window.openModal('planModal');
 };
 
+// Switch Views and Nav Tabs using your original logic
 window.switchView = function(viewName, clickedElement) {
+    // Reset bottom nav tabs
     if (clickedElement && clickedElement.classList.contains('nav-tab')) { 
         document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active')); 
         clickedElement.classList.add('active'); 
     }
     
+    // Reset sidebar nav items
     if (clickedElement && clickedElement.classList.contains('nav-item')) { 
         document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active')); 
         clickedElement.classList.add('active'); 
+        
+        // Sync bottom nav with sidebar clicks
         document.querySelectorAll('.nav-tab').forEach(el => { 
             el.classList.remove('active'); 
             if(el.getAttribute('onclick') && el.getAttribute('onclick').includes(viewName)) {
@@ -144,6 +159,7 @@ window.switchView = function(viewName, clickedElement) {
         }); 
     }
     
+    // Hide all views and show the targeted one
     document.querySelectorAll('.admin-view').forEach(el => el.classList.remove('active'));
     document.getElementById('view-' + viewName).classList.add('active');
 };
