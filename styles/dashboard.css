@@ -1,12 +1,84 @@
 /* --- Gatekeeper / Auth Wall --- */
 .gatekeeper-overlay {
-    background: rgba(10, 15, 30, 0.85); /* Slightly darker to hide dashboard entirely */
+    background: rgba(10, 15, 30, 0.85);
     -webkit-backdrop-filter: blur(15px);
     backdrop-filter: blur(15px);
     z-index: 9999;
-    /* Hardware acceleration to prevent Safari background bleeding */
     -webkit-transform: translateZ(0);
     transform: translateZ(0);
+}
+
+/* --- System Announcement Banner --- */
+.announcement-banner {
+    background: linear-gradient(90deg, rgba(233, 69, 96, 0.15) 0%, rgba(20, 25, 40, 0.9) 100%);
+    border-bottom: 1px solid rgba(233, 69, 96, 0.3);
+    border-left: 4px solid #e94560;
+    padding: 12px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 15px;
+    border-radius: 12px;
+    
+    /* Cross-Browser Glass & Performance Fixes */
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+    
+    -webkit-animation: slideDown 0.5s ease-out;
+    animation: slideDown 0.5s ease-out;
+}
+
+.announcement-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #ffffff;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.pulse-icon {
+    color: #e94560;
+    -webkit-animation: pulseAlert 2s infinite;
+    animation: pulseAlert 2s infinite;
+}
+
+.close-announcement {
+    background: transparent;
+    border: none;
+    color: #8892b0;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 5px;
+    
+    /* Strips Apple default button styling */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+}
+
+@-webkit-keyframes slideDown {
+    from { opacity: 0; -webkit-transform: translateY(-10px); transform: translateY(-10px); }
+    to { opacity: 1; -webkit-transform: translateY(0); transform: translateY(0); }
+}
+
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@-webkit-keyframes pulseAlert {
+    0% { -webkit-transform: scale(1); transform: scale(1); opacity: 1; }
+    50% { -webkit-transform: scale(1.2); transform: scale(1.2); opacity: 0.7; }
+    100% { -webkit-transform: scale(1); transform: scale(1); opacity: 1; }
+}
+
+@keyframes pulseAlert {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.2); opacity: 0.7; }
+    100% { transform: scale(1); opacity: 1; }
 }
 
 /* --- Dashboard Main Container --- */
@@ -14,6 +86,7 @@
     max-width: 1400px;
     margin: 0 auto;
     padding: 30px;
+    padding-bottom: 90px; /* Space for bottom nav */
 }
 
 /* --- View Switching --- */
@@ -21,7 +94,6 @@
     display: none;
     -webkit-animation: fadeInView 0.4s ease forwards;
     animation: fadeInView 0.4s ease forwards;
-    /* Forces smooth view transitions on iOS */
     -webkit-transform: translateZ(0);
     transform: translateZ(0);
 }
@@ -70,7 +142,6 @@
     -webkit-transition: 0.3s;
     transition: 0.3s;
     text-transform: uppercase;
-    /* Prevents double-tap text selection bug on mobile */
     -webkit-user-select: none;
     user-select: none;
 }
@@ -131,8 +202,6 @@
     outline: none;
     -webkit-transition: 0.3s;
     transition: 0.3s;
-    
-    /* CRITICAL: Strips Apple's inner shadow and rounding off the input */
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;
@@ -204,8 +273,6 @@ textarea.glass-input {
     display: flex;
     align-items: center;
     gap: 5px;
-    
-    /* Strips default Apple button styling */
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;
@@ -315,3 +382,35 @@ textarea.glass-input {
 .notif-content h4 { margin-bottom: 5px; font-size: 1.1rem; }
 .notif-content p { color: var(--text-muted); font-size: 0.9rem; line-height: 1.4; margin-bottom: 8px; }
 .notif-content .time { font-size: 0.8rem; color: #888; font-weight: bold; }
+
+/* --- Bottom Nav --- */
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: rgba(15, 20, 35, 0.98);
+    border-top: 1px solid var(--glass-border);
+    display: flex;
+    justify-content: space-around;
+    padding: 10px 0;
+    padding-bottom: calc(10px + env(safe-area-inset-bottom));
+    z-index: 1000;
+    -webkit-backdrop-filter: blur(15px);
+    backdrop-filter: blur(15px);
+}
+.nav-tab {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: 0.3s;
+    width: 33%;
+    position: relative;
+    -webkit-tap-highlight-color: transparent;
+}
+.nav-tab i { font-size: 1.2rem; }
+.nav-tab span { font-size: 0.7rem; font-weight: 600; }
+.nav-tab.active { color: var(--accent); }
