@@ -15,7 +15,9 @@
 }
 
 /* --- Global Resets & Layout --- */
-html { -webkit-text-size-adjust: 100%; }
+html { 
+    -webkit-text-size-adjust: 100%; 
+}
 
 * { 
     margin: 0; 
@@ -28,15 +30,24 @@ html { -webkit-text-size-adjust: 100%; }
 body { 
     background-color: var(--bg-dark); 
     color: var(--text-main); 
-    display: flex; 
-    flex-direction: column; 
+    /* Removed flexbox so background animated blobs can float behind the content */
     height: 100vh; 
     overflow: hidden; 
 }
 
 .hidden { display: none !important; }
 
-/* --- Loaders & Login (Gatekeeper) --- */
+/* --- App Container --- */
+#adminDashboardApp { 
+    display: flex; 
+    flex-direction: column; 
+    height: 100%; 
+    width: 100%; 
+    position: relative;
+    z-index: 1; 
+}
+
+/* --- Loaders & Gatekeeper --- */
 #adminLoader, .modal-overlay { 
     position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
     background: rgba(10, 15, 30, 0.85); 
@@ -73,6 +84,7 @@ body {
     color: white; border-radius: 12px; outline: none; 
     -webkit-appearance: none; -moz-appearance: none; appearance: none; 
 }
+
 .glass-input:focus { border-color: var(--accent); }
 select.glass-input option { background: var(--bg-dark); color: white; }
 
@@ -82,11 +94,10 @@ select.glass-input option { background: var(--bg-dark); color: white; }
     font-weight: bold; font-size: 1rem; cursor: pointer; transition: 0.3s; 
     -webkit-appearance: none; -moz-appearance: none; appearance: none;
 }
+
 .action-btn:hover { background: #ff4757; -webkit-transform: translateY(-2px); transform: translateY(-2px); }
 
-/* --- Header (Styled like other pages) --- */
-#adminDashboardApp { display: flex; flex-direction: column; height: 100%; width: 100%; }
-
+/* --- Admin Header (Frosted Glass) --- */
 .admin-header { 
     display: flex; justify-content: space-between; align-items: center; 
     padding: 15px 25px; 
@@ -96,17 +107,18 @@ select.glass-input option { background: var(--bg-dark); color: white; }
     -webkit-backdrop-filter: blur(20px) saturate(150%);
     backdrop-filter: blur(20px) saturate(150%);
 }
+
 .menu-btn { background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer; }
 .brand { font-size: 1.2rem; font-weight: 800; }
 .brand span { font-size: 0.6rem; background: var(--accent); padding: 2px 6px; border-radius: 4px; vertical-align: middle; }
 .user-profile { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--text-muted); }
 
-/* Hide admin email on small phones so header doesn't squish */
+/* Hide admin email on small phones to keep header clean */
 @media (max-width: 480px) {
     #headerAdminEmail { display: none !important; }
 }
 
-/* --- Sidebar --- */
+/* --- Sidebar (Frosted Glass) --- */
 .admin-sidebar { 
     position: fixed; top: 0; left: -300px; width: 260px; height: 100%; 
     background: rgba(15, 20, 35, 0.95); 
@@ -115,6 +127,7 @@ select.glass-input option { background: var(--bg-dark); color: white; }
     -webkit-backdrop-filter: blur(15px); backdrop-filter: blur(15px);
     -webkit-overflow-scrolling: touch; 
 }
+
 .admin-sidebar.open { left: 0; }
 .sidebar-header { padding: 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--glass-border); }
 .close-btn { background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer; }
@@ -137,6 +150,7 @@ select.glass-input option { background: var(--bg-dark); color: white; }
     padding-bottom: 100px; /* Space for bottom nav */
     -webkit-overflow-scrolling: touch; 
 }
+
 .header-actions { display: flex; flex-direction: row; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
 .header-actions h1 { font-size: 1.5rem; }
 .search-bar { background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); padding: 10px 15px; border-radius: 12px; display: flex; align-items: center; gap: 10px; width: 100%; max-width: 300px; }
@@ -144,17 +158,20 @@ select.glass-input option { background: var(--bg-dark); color: white; }
 
 .admin-view { display: none; -webkit-animation: fadeIn 0.3s; animation: fadeIn 0.3s; }
 .admin-view.active { display: block; }
+
 @-webkit-keyframes fadeIn { from { opacity: 0; -webkit-transform: translateY(10px); } to { opacity: 1; -webkit-transform: translateY(0); } }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-/* --- Stats Grid --- */
+/* --- Stats Grid (Frosted Glass) --- */
 .stats-grid { display: grid; grid-template-columns: 1fr; gap: 15px; margin-bottom: 25px; }
 @media (min-width: 600px) { .stats-grid { grid-template-columns: 1fr 1fr 1fr; } }
+
 .stat-card { 
     background: var(--glass-bg); border: 1px solid var(--glass-border); 
     border-radius: 15px; padding: 20px; display: flex; align-items: center; gap: 15px; 
     -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
 }
+
 .stat-icon { width: 50px; height: 50px; border-radius: 12px; display: flex; justify-content: center; align-items: center; font-size: 1.2rem; }
 .stat-icon.users { background: rgba(52, 152, 219, 0.1); color: #3498db; }
 .stat-icon.revenue { background: rgba(46, 213, 115, 0.1); color: var(--success); }
@@ -162,38 +179,44 @@ select.glass-input option { background: var(--bg-dark); color: white; }
 .stat-info h3 { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; }
 .stat-info p { font-size: 1.5rem; font-weight: bold; }
 
-/* --- Tables --- */
+/* --- Tables (Frosted Glass & Responsive Fixes) --- */
 .table-container { 
     background: var(--glass-bg); border: 1px solid var(--glass-border); 
     border-radius: 15px; overflow-x: auto; margin-top: 10px; 
     -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
     -webkit-overflow-scrolling: touch; 
 }
+
 table { width: 100%; border-collapse: collapse; text-align: left; min-width: 500px; }
+
 th, td { 
     padding: 15px 20px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.9rem; 
-    /* CRITICAL: Prevents emails/data from breaking lines */
+    /* CRITICAL: Keeps emails and data perfectly on one line */
     white-space: nowrap; 
 }
+
 th { color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; background: rgba(0,0,0,0.2); }
 
 /* --- Badges & Actions --- */
 .badge { 
     padding: 4px 10px; border-radius: 50px; font-size: 0.75rem; font-weight: bold; 
-    /* CRITICAL: Prevents "Free Tier" from breaking into two lines */
+    /* CRITICAL: Prevents badges from breaking into two lines */
     white-space: nowrap; display: inline-block;
 }
+
 .badge.active { background: rgba(46, 213, 115, 0.15); color: var(--success); border: 1px solid var(--success); }
 .badge.suspended { background: rgba(255, 71, 87, 0.15); color: var(--danger); border: 1px solid var(--danger); }
 .badge.free { background: rgba(255, 255, 255, 0.1); color: white; border: 1px solid var(--glass-border); }
 
 .action-btns { display: flex; gap: 8px; }
+
 .btn-icon { 
     background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); 
     color: var(--text-muted); width: 32px; height: 32px; border-radius: 8px; 
     cursor: pointer; display: flex; justify-content: center; align-items: center; transition: 0.3s;
     -webkit-appearance: none; appearance: none;
 }
+
 .btn-icon:hover { color: white; background: rgba(255,255,255,0.15); }
 .btn-icon.edit:hover { border-color: #3498db; color: #3498db; }
 .btn-icon.delete:hover { border-color: var(--danger); color: var(--danger); }
@@ -201,22 +224,27 @@ th { color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; bac
 /* --- Bottom Nav (Frosted Glass Theme) --- */
 .bottom-nav {
     position: fixed; bottom: 0; left: 0; width: 100%;
+    
     background: rgba(255, 255, 255, 0.12);
+    -webkit-backdrop-filter: blur(15px) saturate(150%);
+    backdrop-filter: blur(15px) saturate(150%);
+    
     border-top: 1px solid var(--glass-border);
     border-radius: 25px 25px 0 0;
     display: flex; justify-content: space-around;
     padding: 12px 0; padding-bottom: calc(12px + env(safe-area-inset-bottom));
     z-index: 1000;
-    -webkit-backdrop-filter: blur(15px) saturate(150%);
-    backdrop-filter: blur(15px) saturate(150%);
     box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.3);
+    
     -webkit-transform: translateZ(0); transform: translateZ(0);
 }
+
 .nav-tab { 
     display: flex; flex-direction: column; align-items: center; gap: 4px; 
     color: var(--text-muted); cursor: pointer; transition: 0.3s; width: 20%; 
     -webkit-tap-highlight-color: transparent;
 }
+
 .nav-tab i { font-size: 1.2rem; }
 .nav-tab span { font-size: 0.7rem; font-weight: 600; }
 .nav-tab.active { color: var(--accent); -webkit-transform: translateY(-2px); transform: translateY(-2px); }
