@@ -21,7 +21,7 @@
     </div>
 
     <div id="adminLoader" class="overlay gatekeeper-overlay" style="z-index: 99999;">
-        <div style="text-align: center; color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh;">
+        <div style="text-align: center; color: white;">
             <i class="fa-solid fa-shield-halved fa-beat" style="font-size: 3rem; color: var(--accent); margin-bottom: 15px;"></i>
             <h2 id="loaderText">Verifying...</h2>
         </div>
@@ -60,7 +60,7 @@
             
             <div class="nav-right">
                 <div style="display: flex; align-items: center; gap: 10px;">
-                    <span id="headerAdminEmail" style="color: var(--text-muted); font-size: 0.85rem; display: none;">admin@neodynix.com</span>
+                    <span id="headerAdminEmail" class="desktop-only" style="color: var(--text-muted); font-size: 0.85rem;"></span>
                     <div class="user-profile-wrapper">
                         <div class="user-circle" style="background: #3498db; cursor: default;">
                             <i class="fa-solid fa-shield-halved"></i>
@@ -106,9 +106,9 @@
             <div id="view-users" class="dashboard-view">
                 <div class="header-actions" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
                     <h2>Users</h2>
-                    <div id="searchContainer" class="control-panel" style="margin-bottom: 0; padding: 5px 15px; width: 100%; max-width: 300px;">
-                        <i class="fa-solid fa-search" style="color: var(--text-muted);"></i>
-                        <input type="text" id="userSearch" placeholder="Search email..." style="border: none; background: transparent; color: white; outline: none; padding-left: 10px; width: 100%;">
+                    <div id="searchContainer" class="control-panel" style="margin-bottom: 0; padding: 5px 15px; width: 100%; max-width: 300px; border-radius: 50px; display: flex; align-items: center;">
+                        <i class="fa-solid fa-search" style="margin-right: 10px; color: var(--text-muted);"></i>
+                        <input type="text" id="userSearch" placeholder="Search email..." style="background: transparent; border: none; outline: none; color: white; width: 100%;">
                     </div>
                 </div>
                 <div class="control-panel glass-panel table-container">
@@ -142,7 +142,7 @@
             <div id="view-announcements" class="dashboard-view">
                 <div class="header-actions" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                     <h2>Announcements</h2>
-                    <button class="apply-btn" onclick="window.openModal('announcementModal')" style="margin-top: 0; padding: 10px 20px; width: auto; font-size: 0.85rem;"><i class="fa-solid fa-plus"></i> New</button>
+                    <button class="apply-btn" onclick="window.openModal('announcementModal')" style="margin-top: 0; padding: 10px 20px; width: auto; font-size: 0.85rem; border-radius: 50px;"><i class="fa-solid fa-plus"></i> New</button>
                 </div>
                 <div class="control-panel glass-panel table-container">
                     <table>
@@ -181,7 +181,7 @@
                     <option value="Agency">Agency ($15)</option>
                 </select>
             </div>
-            <button class="apply-btn full-width" onclick="window.saveUserPlan()">Save Changes</button>
+            <button class="apply-btn full-width" onclick="window.saveUserPlan()" style="border-radius: 50px;">Save Changes</button>
         </div>
     </div>
 
@@ -192,7 +192,7 @@
                 <div class="close-modal" onclick="window.closeModal('announcementModal')">&times;</div>
             </div>
             <textarea id="announcementText" class="glass-input" placeholder="Enter your system-wide message here..." rows="4"></textarea>
-            <button class="apply-btn full-width" onclick="window.saveAnnouncement()">Post Alert</button>
+            <button class="apply-btn full-width" onclick="window.saveAnnouncement()" style="border-radius: 50px;">Post Alert</button>
         </div>
     </div>
 
@@ -202,4 +202,4 @@
     <script src="scripts/admin-data.js"></script>
     <script src="scripts/admin-auth.js"></script>
 </body>
-        </html>
+            </html>
