@@ -11,22 +11,11 @@ const categories = ["Art & Design", "Automotive", "Business", "Career", "Crypto"
 
 // --- Regex Patterns (SPAM DETECTORS) ---
 const linkPatterns = {
-    // Allows optional query parameters like ?event=123
     discord: /^(https?:\/\/)?(discord\.gg|discord\.com\/invite)\/[a-zA-Z0-9-]+(\?[a-zA-Z0-9_=&%-]+)?$/i,
-    
-    // Allows optional query parameters
     telegram: /^(https?:\/\/)?(t\.me|telegram\.me)\/[a-zA-Z0-9_]+(\?[a-zA-Z0-9_=&%-]+)?$/i,
-    
-    // The WhatsApp fix we just did
     whatsapp: /^(https?:\/\/)?chat\.whatsapp\.com\/[a-zA-Z0-9]+(\?[a-zA-Z0-9_=&-]+)?$/i,
-    
-    // Allows optional query parameters like ?ref=share
     facebook: /^(https?:\/\/)?(www\.)?facebook\.com\/groups\/[a-zA-Z0-9_.-]+\/?(\?[a-zA-Z0-9_=&%-]+)?$/i,
-    
-    // Allows optional query parameters
     reddit: /^(https?:\/\/)?(www\.)?reddit\.com\/r\/[a-zA-Z0-9_]+\/?(\?[a-zA-Z0-9_=&%-]+)?$/i,
-    
-    // Fixed to actually allow the invite code after ig.me/j/, plus query parameters
     instagram: /^(https?:\/\/)?(ig\.me\/j\/[a-zA-Z0-9_-]+|www\.instagram\.com\/[a-zA-Z0-9_.-]+)\/?(\?[a-zA-Z0-9_=&%-]+)?$/i
 };
 const emojiRegex = /([\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF])/g;
@@ -113,7 +102,6 @@ window.openLogoutModal = () => document.getElementById("logoutModal")?.classList
 window.closeModals = () => {
     document.querySelectorAll(".overlay:not(#authGate)").forEach(m => m.classList.add("hidden"));
     const iframe = document.getElementById('gatewayIframe');
-    // Clear iframe to stop background processes from the payment gateway
     if (iframe) {
         iframe.src = 'about:blank';
         iframe.removeAttribute('srcdoc');
@@ -257,7 +245,6 @@ window.validateForm = function() {
     const isLinkValid = linkSuccess ? !linkSuccess.classList.contains("hidden") : true;
     const isDescValid = descSuccess ? !descSuccess.classList.contains("hidden") : true;
 
-    // --- Subscribe Button Override Logic ---
     const isPremiumCategory = isCategorySet && window.premiumCategories.includes(subCategory.value);
     const isFreePlan = window.userPlan === 'Free' || !window.userPlan;
 
