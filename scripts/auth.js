@@ -7,6 +7,23 @@ const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS
 window.supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 window.currentUser = null;
 
+// --- Custom UI Alert Function ---
+window.uiAlert = function(title, message, isSuccess = false) {
+    document.getElementById('uiAlertTitle').innerText = title;
+    document.getElementById('uiAlertMessage').innerText = message;
+    
+    const icon = document.getElementById('uiAlertIcon');
+    if (isSuccess) {
+        icon.innerHTML = '<i class="fa-solid fa-circle-check"></i>';
+        icon.style.color = '#25D366'; // Green
+    } else {
+        icon.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i>';
+        icon.style.color = '#ff4757'; // Red
+    }
+    
+    document.getElementById('uiAlertModal').classList.remove('hidden');
+};
+
 document.addEventListener("DOMContentLoaded", () => {
     const authForm = document.getElementById('authForm');
     
@@ -22,15 +39,15 @@ document.addEventListener("DOMContentLoaded", () => {
             const submitBtn = document.getElementById('authSubmitBtn');
             const isLogin = document.getElementById('authTitle').innerText.includes('Welcome Back');
             
-            // Basic Validation
+            // Basic Validation using UI Alerts
             if (!email || !password) {
-                return alert("Please enter your email and password.");
+                return window.uiAlert("Missing Info", "Please enter your email and password.");
             }
             
             if (!isLogin) {
-                if (!username) return alert("Please provide a username.");
-                if (password !== confirmPassword) return alert("Passwords do not match!");
-                if (password.length < 6) return alert("Password must be at least 6 characters.");
+                if (!username) return window.uiAlert("Hold up!", "Please provide a username.");
+                if (password !== confirmPassword) return window.uiAlert("Error", "Your passwords do not match!");
+                if (password.length < 6) return window.uiAlert("Weak Password", "Password must be at least 6 characters long.");
             }
             
             const originalText = submitBtn.innerText;
@@ -38,43 +55,35 @@ document.addEventListener("DOMContentLoaded", () => {
             submitBtn.disabled = true;
 
             try {
-                // Grab the Cloudflare Turnstile token FIRST for both Login and Sign Up
                 const captchaToken = document.querySelector('[name="cf-turnstile-response"]')?.value;
                 if (!captchaToken) {
-                    throw new Error("Please complete the security check box.");
+                    throw new Error("Please wait for the security check to complete.");
                 }
 
                 if (isLogin) {
-                    // LOG IN: Pass the captcha token here too!
                     const { error } = await window.supabaseClient.auth.signInWithPassword({ 
                         email: email, 
                         password: password,
-                        options: {
-                            captchaToken: captchaToken
-                        }
+                        options: { captchaToken: captchaToken }
                     });
                     if (error) throw error;
                     
                 } else {
-                    // SIGN UP: Pass username and captcha token
                     const { error } = await window.supabaseClient.auth.signUp({ 
                         email: email, 
                         password: password,
                         options: {
                             captchaToken: captchaToken,
-                            data: {
-                                username: username
-                            }
+                            data: { username: username }
                         }
                     });
                     if (error) throw error;
                     
-                    alert("Account created successfully! Please check your email to verify your account before logging in.");
+                    window.uiAlert("Success!", "Account created successfully! Please check your email inbox to verify your account before logging in.", true);
                     window.toggleAuthMode(); // Switch back to login screen
                 }
             } catch (error) {
-                alert(error.message);
-                // Reset the captcha widget so they can try again without refreshing the whole page
+                window.uiAlert("Authentication Failed", error.message);
                 if (window.turnstile) {
                     window.turnstile.reset();
                 }
@@ -87,7 +96,6 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // --- Auth UI Helpers ---
-
 window.toggleAuthMode = function() {
     const title = document.getElementById('authTitle');
     const btn = document.getElementById('authSubmitBtn');
@@ -95,33 +103,30 @@ window.toggleAuthMode = function() {
     const isLogin = title.innerText.includes('Welcome Back');
     
     const signupFields = document.querySelectorAll('.signup-only');
-    const loginFields = document.querySelectorAll('.login-only'); // Targets the Forgot Password link
+    const loginFields = document.querySelectorAll('.login-only'); 
 
     if (isLogin) {
-        // Switch to Sign Up View
         title.innerText = "Create Account";
         btn.innerText = "Sign Up";
         toggleText.innerHTML = 'Already have an account? <span style="color: var(--accent); cursor: pointer; font-weight: bold;" onclick="window.toggleAuthMode()">Log In</span>';
         
         signupFields.forEach(f => f.classList.remove('hidden'));
-        loginFields.forEach(f => f.classList.add('hidden')); // Hide 'Forgot?'
+        loginFields.forEach(f => f.classList.add('hidden')); 
         
         document.getElementById('authUsername').setAttribute('required', 'true');
         document.getElementById('authConfirmPassword').setAttribute('required', 'true');
     } else {
-        // Switch to Log In View
         title.innerText = "Welcome Back";
         btn.innerText = "Log In";
         toggleText.innerHTML = 'Need an account? <span style="color: var(--accent); cursor: pointer; font-weight: bold;" onclick="window.toggleAuthMode()">Sign Up</span>';
         
         signupFields.forEach(f => f.classList.add('hidden'));
-        loginFields.forEach(f => f.classList.remove('hidden')); // Show 'Forgot?'
+        loginFields.forEach(f => f.classList.remove('hidden')); 
         
         document.getElementById('authUsername').removeAttribute('required');
         document.getElementById('authConfirmPassword').removeAttribute('required');
     }
     
-    // Reset Turnstile widget when switching modes so it gets a fresh token
     if (window.turnstile) {
         window.turnstile.reset();
     }
@@ -149,11 +154,8 @@ window.handleForgotPassword = async function() {
     const emailInput = document.getElementById('authEmail').value;
     
     if (!emailInput) {
-        return alert("Please type your email address into the box first, then click 'Forgot?'.");
+        return window.uiAlert("Missing Email", "Please type your email address into the box first, then click 'Forgot?'.");
     }
-
-    const confirmReset = confirm(`Send a password reset link to ${emailInput}?`);
-    if (!confirmReset) return;
 
     try {
         const { error } = await window.supabaseClient.auth.resetPasswordForEmail(emailInput, {
@@ -161,10 +163,10 @@ window.handleForgotPassword = async function() {
         });
         
         if (error) throw error;
-        alert("Password reset email sent! Please check your inbox.");
+        window.uiAlert("Email Sent!", "A password reset link has been sent to your inbox.", true);
         
     } catch (error) {
-        alert("Error: " + error.message);
+        window.uiAlert("Error", error.message);
     }
 };
 
@@ -173,24 +175,11 @@ window.supabaseClient.auth.onAuthStateChange((event, session) => {
     const authGate = document.getElementById('authGate');
     const dashboardApp = document.getElementById('dashboardApp');
     
-    // Listen specifically for the password reset event
-    if (event === 'PASSWORD_RECOVERY') {
-        const newPassword = prompt("Enter your new password:");
-        if (newPassword) {
-            window.supabaseClient.auth.updateUser({ password: newPassword })
-                .then(({ error }) => {
-                    if (error) alert("Error updating password: " + error.message);
-                    else alert("Password updated successfully! You are now logged in.");
-                });
-        }
-    }
-    
     if (session?.user) {
         window.currentUser = session.user;
         if(authGate) authGate.classList.add('hidden');
         if(dashboardApp) dashboardApp.classList.remove('hidden');
         
-        // Use Username if it exists, otherwise fallback to Email
         const displayAlias = window.currentUser.user_metadata?.username || window.currentUser.email;
         document.getElementById('userAvatar').innerText = displayAlias.charAt(0).toUpperCase();
         document.getElementById('profileEmail').innerText = displayAlias;
@@ -203,7 +192,6 @@ window.supabaseClient.auth.onAuthStateChange((event, session) => {
         if(dashboardApp) dashboardApp.classList.add('hidden');
         if(authGate) authGate.classList.remove('hidden');
         
-        // Ensure Turnstile renders if they are logged out
         if (window.turnstile) {
             window.turnstile.reset();
         }
