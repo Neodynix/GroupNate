@@ -78,7 +78,8 @@ document.addEventListener("DOMContentLoaded", () => {
                     });
                     if (error) throw error;
                     
-                    window.uiAlert("Success!", "Account created successfully! Please check your email inbox to verify your account before logging in.", true);
+                    // NEW: Updated message informing them of the live event/verification email
+                    window.uiAlert("Action Required!", "Account created! A live verification link has been sent to your inbox. You must click it to activate your account before logging in.", true);
                     window.toggleAuthMode(); 
                 }
             } catch (error) {
@@ -178,11 +179,17 @@ window.handleForgotPassword = async function() {
     }
 };
 
-// --- New Password Submission Logic ---
+// --- New Password Submission Logic (DOUBLE CHECK IMPLEMENTED) ---
 window.submitNewPassword = async function() {
     const newPassword = document.getElementById('newPasswordInput').value;
+    const confirmPassword = document.getElementById('confirmNewPasswordInput').value;
+    
     if (newPassword.length < 6) {
         return window.uiAlert("Weak Password", "Password must be at least 6 characters.");
+    }
+    
+    if (newPassword !== confirmPassword) {
+        return window.uiAlert("Mismatch", "Your new passwords do not match. Please try again.");
     }
 
     const btn = document.querySelector('#resetPasswordModal .apply-btn');
@@ -203,18 +210,20 @@ window.submitNewPassword = async function() {
     }
 };
 
-// --- Auth State Listener ---
+// --- Auth State Listener (HANDLES LOADER FOUC) ---
 window.supabaseClient.auth.onAuthStateChange((event, session) => {
     const authGate = document.getElementById('authGate');
     const dashboardApp = document.getElementById('dashboardApp');
+    const appLoader = document.getElementById('appLoader');
     
-    // Catch Password Reset Flow
+    // 1. Hide the global loader because Supabase has responded
+    if (appLoader) appLoader.classList.add('hidden');
+    
     if (event === 'PASSWORD_RECOVERY') {
         document.getElementById('resetPasswordModal').classList.remove('hidden');
         return; 
     }
     
-    // Catch Successful Verification Flow
     if (event === 'SIGNED_IN' && window.location.hash.includes('type=signup')) {
         window.uiAlert("Verified!", "Your email address has been successfully verified. Welcome to GroupNate!", true);
         window.history.replaceState(null, null, window.location.pathname);
@@ -235,7 +244,11 @@ window.supabaseClient.auth.onAuthStateChange((event, session) => {
     } else {
         window.currentUser = null;
         if(dashboardApp) dashboardApp.classList.add('hidden');
-        if(authGate) authGate.classList.remove('hidden');
+        
+        // Only show the auth gate if we are not actively looking at the password reset modal
+        if (document.getElementById('resetPasswordModal').classList.contains('hidden')) {
+            if(authGate) authGate.classList.remove('hidden');
+        }
         
         if (window.turnstile) {
             window.turnstile.reset();
