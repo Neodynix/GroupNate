@@ -82,7 +82,9 @@
                         <div class="profile-name" id="profilePlanLabel">Free Tier</div>
                         <div class="profile-email" id="profileEmail">loading...</div>
                         <hr class="profile-divider">
-                        <div class="profile-stat">My Groups: <span id="activeGroupCount">0</span></div>
+                        <div class="profile-stat" style="margin-bottom: 10px;">My Groups: <span id="activeGroupCount">0</span></div>
+                        
+                        <button class="action-btn" style="background: transparent; border: 1px solid #ff4757; color: #ff4757; width: 100%; font-size: 0.8rem; padding: 8px;" onclick="document.getElementById('deleteAccountModal').classList.remove('hidden'); toggleProfilePopup();">Delete Account</button>
                     </div>
                 </div>
             </div>
@@ -134,6 +136,13 @@
                                     <option value="instagram">Instagram</option>
                                     <option value="facebook">Facebook</option>
                                     <option value="reddit">Reddit</option>
+                                </select>
+                            </div>
+
+                            <div class="filter-group hidden" id="typeGroup">
+                                <label>Type</label>
+                                <select id="subType" required>
+                                    <option value="">Select Type</option>
                                 </select>
                             </div>
 
@@ -234,9 +243,10 @@
                 <i class="fa-solid fa-crown"></i>
                 <span>Upgrade</span>
             </div>
-            <div class="nav-tab" data-target="notifications" onclick="switchView('notifications', event)">
+            <div class="nav-tab" data-target="notifications" onclick="switchView('notifications', event)" style="position: relative;">
                 <i class="fa-solid fa-bell"></i>
                 <span>Alerts</span>
+                <span class="badge hidden" id="bottomNotifBadge" style="position: absolute; top: -5px; right: 25px; font-size: 0.65rem; padding: 2px 6px; border-radius: 50px;">0</span>
             </div>
         </nav>
     </div> 
@@ -260,6 +270,18 @@
             <div class="preview-actions" style="border: none; padding: 0; justify-content: center;">
                 <button class="nav-btn" onclick="closeModals()">Cancel</button>
                 <button class="apply-btn" style="background: #ff4757; margin-top: 0;" onclick="confirmLogout()">Yes, Logout</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="deleteAccountModal" class="overlay gatekeeper-overlay hidden" style="z-index: 100000;">
+        <div class="preview-modal glass-panel" style="max-width: 350px; text-align: center; padding: 30px; margin: auto;">
+            <i class="fa-solid fa-triangle-exclamation" style="font-size: 3rem; color: #ff4757; margin-bottom: 15px;"></i>
+            <h3 style="margin-bottom: 10px;">Delete Account?</h3>
+            <p style="color: var(--text-muted); margin-bottom: 20px; font-size: 0.9rem;">This action is permanent. Your profile, groups, and subscriptions will be permanently erased. Are you sure?</p>
+            <div style="display: flex; gap: 10px;">
+                <button class="action-btn" style="background: rgba(255,255,255,0.1); color: white; flex: 1;" onclick="document.getElementById('deleteAccountModal').classList.add('hidden')">Cancel</button>
+                <button class="action-btn" style="background: #ff4757; flex: 1;" id="confirmDeleteBtn" onclick="confirmAccountDeletion()">Yes, Delete</button>
             </div>
         </div>
     </div>
