@@ -21,7 +21,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             document.getElementById('adminLoginScreen').classList.remove('hidden');
         }
     } catch (err) {
-        // If it crashes here, we catch it and hide the loader so you aren't stuck!
         console.error("Bootloader Error:", err);
         window.hideLoader();
         document.getElementById('loginError').innerText = "System Error: " + err.message;
@@ -42,13 +41,30 @@ document.getElementById('adminLoginForm')?.addEventListener('submit', async (e) 
     errorTxt.style.display = 'none';
 
     try {
-        const { data, error } = await window.supabaseClient.auth.signInWithPassword({ email, password });
+        // Grab the Turnstile token
+        const captchaToken = document.querySelector('[name="cf-turnstile-response"]')?.value;
+        if (!captchaToken) {
+            throw new Error("Please wait for the security check to complete.");
+        }
+
+        const { data, error } = await window.supabaseClient.auth.signInWithPassword({ 
+            email: email, 
+            password: password,
+            options: { captchaToken: captchaToken } // Pass token to Supabase
+        });
+        
         if (error) throw error;
         window.verifyAdmin(data.user);
+        
     } catch (err) {
         btn.innerText = "Login to Portal";
         errorTxt.innerText = err.message;
         errorTxt.style.display = 'block';
+        
+        // Reset CAPTCHA on failure so they can try again
+        if (window.turnstile) {
+            window.turnstile.reset();
+        }
     }
 });
 
@@ -76,6 +92,11 @@ window.verifyAdmin = async function(user) {
         document.getElementById('loginError').innerText = err.message;
         document.getElementById('loginError').style.display = 'block';
         document.getElementById('loginBtn').innerText = "Login to Portal";
+        
+        // Reset CAPTCHA if access denied
+        if (window.turnstile) {
+            window.turnstile.reset();
+        }
     }
 };
 
