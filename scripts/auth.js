@@ -55,6 +55,7 @@ document.addEventListener("DOMContentLoaded", () => {
             submitBtn.disabled = true;
 
             try {
+                // Grab the Cloudflare Turnstile token
                 const captchaToken = document.querySelector('[name="cf-turnstile-response"]')?.value;
                 if (!captchaToken) {
                     throw new Error("Please wait for the security check to complete.");
