@@ -270,10 +270,20 @@
         </div>
     </div>
 
+    <div id="resetPasswordModal" class="overlay gatekeeper-overlay hidden" style="z-index: 100000;">
+        <div class="preview-modal glass-panel" style="max-width: 400px; text-align: center; padding: 30px; margin: auto;">
+            <i class="fa-solid fa-key" style="font-size: 2.5rem; color: var(--accent); margin-bottom: 15px;"></i>
+            <h3 style="margin-bottom: 10px;">Set New Password</h3>
+            <p style="color: var(--text-muted); margin-bottom: 20px; font-size: 0.9rem;">Please enter your new password below to regain access.</p>
+            <input type="password" id="newPasswordInput" class="glass-input" placeholder="New Password (min 6 chars)" style="margin-bottom: 15px;">
+            <button class="apply-btn full-width" onclick="submitNewPassword()">Update Password</button>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="scripts/auth.js"></script>
     <script src="scripts/dashboard-ui.js"></script>
     <script src="scripts/payment.js"></script>
     <script src="scripts/data.js"></script>
 </body>
-        </html>
+    </html>
