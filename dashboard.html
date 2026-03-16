@@ -17,7 +17,7 @@
     </div>
 
     <div id="authGate" class="overlay gatekeeper-overlay">
-        <div class="preview-modal glass-panel" style="max-width: 400px; padding: 40px 30px; margin: auto;">
+        <div class="preview-modal glass-panel" style="max-width: 400px; padding: 30px 25px; margin: auto; max-height: 90vh; overflow-y: auto; overflow-x: hidden;">
             <div class="logo" style="text-align: center; margin-bottom: 10px; font-size: 1.8rem;">GroupNate <span style="color:var(--accent);">Creator</span></div>
             <h2 id="authTitle" style="text-align: center; margin-bottom: 25px; color: var(--text-muted); font-size: 1.1rem;">Welcome Back</h2>
             
@@ -47,11 +47,11 @@
                     <i class="fa-solid fa-eye-slash toggle-password" onclick="togglePasswordVisibility('authConfirmPassword')" style="position: absolute; right: 15px; top: 40px; color: var(--text-muted); cursor: pointer;"></i>
                 </div>
 
-                <div class="filter-group" style="margin-bottom: 20px; display: flex; justify-content: center; max-width: 100%; overflow: hidden;">
-                    <div class="cf-turnstile" data-sitekey="0x4AAAAAACrrAa7pP25iIWQk" data-size="flexible" style="width: 100%;"></div>
+                <div class="filter-group" style="margin-bottom: 20px; display: flex; justify-content: center;">
+                    <div class="cf-turnstile" data-sitekey="0x4AAAAAACrrAa7pP25iIWQk" data-size="compact"></div>
                 </div>
 
-                <button type="submit" id="authSubmitBtn" class="apply-btn full-width" style="border-radius: 25px;">Log In</button>
+                <button type="submit" id="authSubmitBtn" class="apply-btn full-width" style="border-radius: 25px; margin-top: 10px;">Log In</button>
             </form>
 
             <p id="authToggleText" style="text-align: center; margin-top: 20px; font-size: 0.9rem; color: var(--text-muted);">
@@ -256,6 +256,17 @@
                 <button class="nav-btn" onclick="closeModals()">Cancel</button>
                 <button class="apply-btn" style="background: #ff4757; margin-top: 0;" onclick="confirmLogout()">Yes, Logout</button>
             </div>
+        </div>
+    </div>
+
+    <div id="uiAlertModal" class="overlay gatekeeper-overlay hidden" style="z-index: 100000;">
+        <div class="preview-modal glass-panel" style="max-width: 320px; text-align: center; padding: 30px; margin: auto;">
+            <div id="uiAlertIcon" style="font-size: 3rem; margin-bottom: 15px; color: var(--accent);">
+                <i class="fa-solid fa-circle-exclamation"></i>
+            </div>
+            <h3 id="uiAlertTitle" style="margin-bottom: 10px;">Alert</h3>
+            <p id="uiAlertMessage" style="color: var(--text-muted); margin-bottom: 25px; line-height: 1.5; font-size: 0.95rem;"></p>
+            <button class="apply-btn full-width" onclick="document.getElementById('uiAlertModal').classList.add('hidden')">Got it</button>
         </div>
     </div>
 
