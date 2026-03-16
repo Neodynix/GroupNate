@@ -16,7 +16,12 @@
         <div class="blob blob-3"></div>
     </div>
 
-    <div id="authGate" class="overlay gatekeeper-overlay">
+    <div id="appLoader" class="overlay gatekeeper-overlay" style="z-index: 999999; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+        <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 3rem; color: var(--accent); margin-bottom: 15px;"></i>
+        <h2 style="color: white; font-size: 1.2rem;">Loading GroupNate...</h2>
+    </div>
+
+    <div id="authGate" class="overlay gatekeeper-overlay hidden">
         <div class="preview-modal glass-panel" style="max-width: 400px; padding: 30px 25px; margin: auto; max-height: 90vh; overflow-y: auto; overflow-x: hidden;">
             <div class="logo" style="text-align: center; margin-bottom: 10px; font-size: 1.8rem;">GroupNate <span style="color:var(--accent);">Creator</span></div>
             <h2 id="authTitle" style="text-align: center; margin-bottom: 25px; color: var(--text-muted); font-size: 1.1rem;">Welcome Back</h2>
@@ -275,7 +280,17 @@
             <i class="fa-solid fa-key" style="font-size: 2.5rem; color: var(--accent); margin-bottom: 15px;"></i>
             <h3 style="margin-bottom: 10px;">Set New Password</h3>
             <p style="color: var(--text-muted); margin-bottom: 20px; font-size: 0.9rem;">Please enter your new password below to regain access.</p>
-            <input type="password" id="newPasswordInput" class="glass-input" placeholder="New Password (min 6 chars)" style="margin-bottom: 15px;">
+            
+            <div class="filter-group" style="margin-bottom: 15px; position: relative; text-align: left;">
+                <input type="password" id="newPasswordInput" class="glass-input" placeholder="New Password (min 6 chars)">
+                <i class="fa-solid fa-eye-slash toggle-password" onclick="togglePasswordVisibility('newPasswordInput')" style="position: absolute; right: 15px; top: 15px; color: var(--text-muted); cursor: pointer;"></i>
+            </div>
+            
+            <div class="filter-group" style="margin-bottom: 20px; position: relative; text-align: left;">
+                <input type="password" id="confirmNewPasswordInput" class="glass-input" placeholder="Confirm New Password">
+                <i class="fa-solid fa-eye-slash toggle-password" onclick="togglePasswordVisibility('confirmNewPasswordInput')" style="position: absolute; right: 15px; top: 15px; color: var(--text-muted); cursor: pointer;"></i>
+            </div>
+
             <button class="apply-btn full-width" onclick="submitNewPassword()">Update Password</button>
         </div>
     </div>
