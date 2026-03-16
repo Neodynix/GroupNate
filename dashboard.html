@@ -47,10 +47,8 @@
                     <i class="fa-solid fa-eye-slash toggle-password" onclick="togglePasswordVisibility('authConfirmPassword')" style="position: absolute; right: 15px; top: 40px; color: var(--text-muted); cursor: pointer;"></i>
                 </div>
 
-                <div class="filter-group" style="margin-bottom: 20px; display: flex; justify-content: center; width: 100%;">
-                    <div style="transform: scale(0.85); transform-origin: center; margin: -5px 0;">
-                        <div class="cf-turnstile" data-sitekey="0x4AAAAAACrrAa7pP25iIWQk" data-size="normal"></div>
-                    </div>
+                <div class="filter-group captcha-wrapper">
+                    <div class="cf-turnstile" data-sitekey="0x4AAAAAACrrAa7pP25iIWQk" data-size="normal"></div>
                 </div>
 
                 <button type="submit" id="authSubmitBtn" class="apply-btn full-width" style="border-radius: 25px; margin-top: 10px;">Log In</button>
