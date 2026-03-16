@@ -39,7 +39,6 @@ document.addEventListener("DOMContentLoaded", () => {
             const submitBtn = document.getElementById('authSubmitBtn');
             const isLogin = document.getElementById('authTitle').innerText.includes('Welcome Back');
             
-            // Basic Validation using UI Alerts
             if (!email || !password) {
                 return window.uiAlert("Missing Info", "Please enter your email and password.");
             }
@@ -55,7 +54,6 @@ document.addEventListener("DOMContentLoaded", () => {
             submitBtn.disabled = true;
 
             try {
-                // Grab the Cloudflare Turnstile token
                 const captchaToken = document.querySelector('[name="cf-turnstile-response"]')?.value;
                 if (!captchaToken) {
                     throw new Error("Please wait for the security check to complete.");
@@ -81,7 +79,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     if (error) throw error;
                     
                     window.uiAlert("Success!", "Account created successfully! Please check your email inbox to verify your account before logging in.", true);
-                    window.toggleAuthMode(); // Switch back to login screen
+                    window.toggleAuthMode(); 
                 }
             } catch (error) {
                 window.uiAlert("Authentication Failed", error.message);
@@ -150,7 +148,7 @@ window.togglePasswordVisibility = function(inputId) {
     }
 };
 
-// --- Password Reset Logic ---
+// --- Password Reset Request Logic ---
 window.handleForgotPassword = async function() {
     const emailInput = document.getElementById('authEmail').value;
     
@@ -159,15 +157,49 @@ window.handleForgotPassword = async function() {
     }
 
     try {
+        const captchaToken = document.querySelector('[name="cf-turnstile-response"]')?.value;
+        if (!captchaToken) {
+            throw new Error("Please wait for the security check to complete.");
+        }
+
         const { error } = await window.supabaseClient.auth.resetPasswordForEmail(emailInput, {
-            redirectTo: window.location.origin + '/dashboard.html'
+            redirectTo: window.location.origin + '/dashboard.html',
+            captchaToken: captchaToken 
         });
         
         if (error) throw error;
         window.uiAlert("Email Sent!", "A password reset link has been sent to your inbox.", true);
         
+        if (window.turnstile) window.turnstile.reset();
+        
     } catch (error) {
         window.uiAlert("Error", error.message);
+        if (window.turnstile) window.turnstile.reset();
+    }
+};
+
+// --- New Password Submission Logic ---
+window.submitNewPassword = async function() {
+    const newPassword = document.getElementById('newPasswordInput').value;
+    if (newPassword.length < 6) {
+        return window.uiAlert("Weak Password", "Password must be at least 6 characters.");
+    }
+
+    const btn = document.querySelector('#resetPasswordModal .apply-btn');
+    btn.innerText = "Updating...";
+
+    try {
+        const { error } = await window.supabaseClient.auth.updateUser({ password: newPassword });
+        if (error) throw error;
+        
+        document.getElementById('resetPasswordModal').classList.add('hidden');
+        window.uiAlert("Success!", "Your password has been updated successfully. You are now safely logged in.", true);
+        
+        window.history.replaceState(null, null, window.location.pathname);
+        
+    } catch (error) {
+        window.uiAlert("Error", error.message);
+        btn.innerText = "Update Password";
     }
 };
 
@@ -175,6 +207,18 @@ window.handleForgotPassword = async function() {
 window.supabaseClient.auth.onAuthStateChange((event, session) => {
     const authGate = document.getElementById('authGate');
     const dashboardApp = document.getElementById('dashboardApp');
+    
+    // Catch Password Reset Flow
+    if (event === 'PASSWORD_RECOVERY') {
+        document.getElementById('resetPasswordModal').classList.remove('hidden');
+        return; 
+    }
+    
+    // Catch Successful Verification Flow
+    if (event === 'SIGNED_IN' && window.location.hash.includes('type=signup')) {
+        window.uiAlert("Verified!", "Your email address has been successfully verified. Welcome to GroupNate!", true);
+        window.history.replaceState(null, null, window.location.pathname);
+    }
     
     if (session?.user) {
         window.currentUser = session.user;
