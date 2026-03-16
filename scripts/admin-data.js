@@ -2,6 +2,9 @@
 // admin-data.js - Database Fetching & Actions
 // ==========================================
 
+// Store communities globally so the Review Modal can find them easily
+window.allCommunities = [];
+
 window.loadDashboardData = async function() {
     try {
         // Fetch Users
@@ -16,13 +19,17 @@ window.loadDashboardData = async function() {
             window.populateLedgerTable(profiles); 
         }
 
-        // Fetch Communities
+        // Fetch Communities (Now fetching ALL details for the review modal)
         const { data: communities, count: communityCount } = await window.supabaseClient
             .from('communities')
-            .select('id, name', { count: 'exact' });
+            .select('id, user_id, name, platform, category, link, description, status, is_premium', { count: 'exact' })
+            .order('created_at', { ascending: false });
             
         document.getElementById('statTotalGroups').innerText = communityCount || 0;
-        if (communities) window.populateCommunitiesTable(communities);
+        if (communities) {
+            window.allCommunities = communities;
+            window.populateCommunitiesTable(communities);
+        }
 
         // Fetch Announcements
         const { data: announcements } = await window.supabaseClient
@@ -52,25 +59,50 @@ window.loadDashboardData = async function() {
     }
 };
 
+// --- Notification Engine ---
+window.notifyUser = async function(userId, title, message, type) {
+    await window.supabaseClient.from('notifications').insert([{
+        user_id: userId,
+        title: title,
+        message: message,
+        type: type // 'success', 'error', 'warning', 'info'
+    }]);
+};
+
+// --- Admin Actions (Using Custom UI Modals) ---
+
 window.toggleSuspendUser = async function(userId, currentStatus) {
     const action = currentStatus ? "unsuspend" : "suspend";
-    if (!confirm(`Are you sure you want to ${action} this user?`)) return;
     
-    window.showLoader("Updating status...");
-    const { error } = await window.supabaseClient.from('profiles').update({ is_suspended: !currentStatus }).eq('id', userId);
-    
-    if (error) alert("Error: " + error.message);
-    else window.loadDashboardData();
-    window.hideLoader();
+    window.customConfirm("Confirm Status Change", `Are you sure you want to ${action} this user?`, async () => {
+        window.showLoader("Updating status...");
+        const { error } = await window.supabaseClient.from('profiles').update({ is_suspended: !currentStatus }).eq('id', userId);
+        
+        if (error) {
+            window.customAlert("Error", error.message);
+        } else {
+            // Notify the user about their account status
+            const title = currentStatus ? "Account Restored" : "Account Suspended";
+            const msg = currentStatus ? "Your account has been fully restored. Welcome back!" : "Your account has been suspended by an administrator due to a violation of our terms.";
+            const type = currentStatus ? "success" : "error";
+            await window.notifyUser(userId, title, msg, type);
+            
+            window.loadDashboardData();
+        }
+        window.hideLoader();
+    });
 };
 
 window.resetUserPassword = async function(email) {
-    if (!confirm(`Send password reset email to ${email}?`)) return;
-    window.showLoader("Sending email...");
-    const { error } = await window.supabaseClient.auth.resetPasswordForEmail(email);
-    if (error) alert("Error: " + error.message);
-    else alert("Password reset email sent!");
-    window.hideLoader();
+    window.customConfirm("Reset Password", `Send a password reset email to ${email}?`, async () => {
+        window.showLoader("Sending email...");
+        const { error } = await window.supabaseClient.auth.resetPasswordForEmail(email);
+        
+        if (error) window.customAlert("Error", error.message);
+        else window.customAlert("Success", "Password reset email has been sent successfully.");
+        
+        window.hideLoader();
+    });
 };
 
 window.saveUserPlan = async function() {
@@ -89,18 +121,24 @@ window.saveUserPlan = async function() {
         error = res.error;
     }
 
-    if (error) alert("Error: " + error.message);
-    else window.loadDashboardData();
+    if (error) {
+        window.customAlert("Error", error.message);
+    } else {
+        await window.notifyUser(userId, "Plan Updated", `An admin has updated your account to the ${newPlan}.`, "info");
+        window.loadDashboardData();
+    }
     window.hideLoader();
 };
 
 window.deleteGroup = async function(communityId) {
-    if (!confirm("Are you sure you want to DELETE this community permanently?")) return;
-    window.showLoader("Deleting community...");
-    const { error } = await window.supabaseClient.from('communities').delete().eq('id', communityId);
-    if (error) alert("Error: " + error.message);
-    else window.loadDashboardData();
-    window.hideLoader();
+    window.customConfirm("Delete Community", "Are you sure you want to completely delete this community? This cannot be undone.", async () => {
+        window.showLoader("Deleting...");
+        const { error } = await window.supabaseClient.from('communities').delete().eq('id', communityId);
+        
+        if (error) window.customAlert("Error", error.message);
+        else window.loadDashboardData();
+        window.hideLoader();
+    });
 };
 
 window.saveAnnouncement = async function() {
@@ -112,9 +150,34 @@ window.saveAnnouncement = async function() {
     
     const { error } = await window.supabaseClient.from('announcements').insert([{ message: text }]);
     
-    if (error) alert("Make sure you created an 'announcements' table in Supabase!");
+    if (error) window.customAlert("Error", "Could not post announcement. Make sure the table exists.");
     else window.loadDashboardData();
+    
     document.getElementById('announcementText').value = '';
     window.hideLoader();
 };
 
+// --- NEW: Approve or Reject a Group ---
+window.updateGroupStatus = async function(groupId, userId, groupName, newStatus) {
+    window.showLoader(`Marking as ${newStatus}...`);
+    
+    const { error } = await window.supabaseClient.from('communities').update({ status: newStatus }).eq('id', groupId);
+    
+    if (error) {
+        window.customAlert("Error", error.message);
+    } else {
+        // Build the notification
+        const title = newStatus === 'live' ? "Community Approved!" : "Community Rejected";
+        const msg = newStatus === 'live' 
+            ? `Good news! Your community "${groupName}" has been approved and is now live on the platform.`
+            : `We're sorry, but your community "${groupName}" was rejected because it did not meet our quality guidelines.`;
+        const type = newStatus === 'live' ? "success" : "error";
+        
+        await window.notifyUser(userId, title, msg, type);
+        
+        window.closeModal('reviewModal');
+        window.loadDashboardData();
+        window.customAlert("Success", `Community has been marked as ${newStatus}. The user has been notified.`);
+    }
+    window.hideLoader();
+};
