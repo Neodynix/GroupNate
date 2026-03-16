@@ -20,7 +20,6 @@ window.fetchDashboardData = async function() {
     window.userPlan = sub ? sub.plan_name : 'Free';
     document.getElementById('profilePlanLabel').innerText = `${window.userPlan} Tier`;
 
-    // Highlight current plan on Subscriptions view
     document.querySelectorAll('.pricing-card').forEach(card => card.style.border = '1px solid rgba(255,255,255,0.1)');
     const currentCard = document.getElementById(window.userPlan === 'Creator Pro' ? 'plan-Pro' : (window.userPlan === 'Agency' ? 'plan-Agency' : 'plan-Free'));
     if(currentCard) currentCard.style.border = '2px solid var(--accent)';
@@ -41,30 +40,40 @@ window.fetchDashboardData = async function() {
         window.renderMyGroups();
     }
 
-    // 3. Fetch Notifications
+    // 3. Fetch Notifications & Update Both Badges
     const { data: notifs } = await window.supabaseClient
         .from('notifications')
         .select('*')
         .eq('user_id', window.currentUser.id)
         .order('created_at', { ascending: false });
 
+    const bottomBadge = document.getElementById('bottomNotifBadge');
+
     if (notifs && notifs.length > 0) {
         document.getElementById('notifBadge').innerText = notifs.length;
+        if (bottomBadge) {
+            bottomBadge.innerText = notifs.length;
+            bottomBadge.classList.remove('hidden');
+        }
+        
         renderNotifications(notifs);
         
-        // SELF-DESTRUCT: Delete them from DB now that they are fetched and shown
+        // Delete them from DB now that they are fetched
         await window.supabaseClient.from('notifications').delete().eq('user_id', window.currentUser.id);
     } else {
         document.getElementById('notifBadge').innerText = '0';
+        if (bottomBadge) {
+            bottomBadge.classList.add('hidden');
+        }
     }
 
-    // --- NEW: 4. Fetch System Announcement ---
-    const { data: announcementData, error: annError } = await window.supabaseClient
+    // 4. Fetch System Announcement
+    const { data: announcementData } = await window.supabaseClient
         .from('announcements')
         .select('message')
         .order('created_at', { ascending: false })
         .limit(1)
-        .single(); // Gets the single most recent announcement
+        .single(); 
 
     const banner = document.getElementById('systemAnnouncement');
     if (announcementData && announcementData.message && banner) {
@@ -73,7 +82,6 @@ window.fetchDashboardData = async function() {
     } else if (banner) {
         banner.style.display = 'none';
     }
-    // ------------------------------------------
 };
 
 // Form Submission logic
@@ -88,11 +96,12 @@ document.getElementById('submitGroupForm')?.addEventListener('submit', async fun
     const subCategory = document.getElementById('subCategory').value;
     const isPremium = window.premiumCategories.includes(subCategory);
 
+    // Save the new dynamic type!
     const groupData = {
         user_id: window.currentUser.id,
         name: document.getElementById('subName').value.trim(),
         platform: document.getElementById('subPlatform').value,
-        type: 'Group',
+        type: document.getElementById('subType').value || 'Group', 
         category: subCategory,
         country: document.getElementById('subCountry').value,
         city: document.getElementById('subCity').value,
@@ -101,20 +110,19 @@ document.getElementById('submitGroupForm')?.addEventListener('submit', async fun
         is_premium: isPremium
     };
 
-    // Let the Database Trigger handle the status logic!
     const { error } = await window.supabaseClient.from('communities').insert([groupData]);
 
     if (error) {
-        // If they are on Free and already have a discord server, the DB trigger throws this error.
-        alert(error.message); 
+        window.uiAlert("Submission Failed", error.message);
         submitBtn.innerHTML = 'Post Group';
         submitBtn.disabled = false;
         return;
     }
 
-    alert("Success! Your community has been processed.");
+    window.uiAlert("Success!", "Your community has been successfully submitted for review.", true);
     e.target.reset();
-    window.fetchDashboardData(); // Refresh UI
+    document.getElementById("typeGroup")?.classList.add("hidden"); // Hide the dropdown again
+    window.fetchDashboardData(); 
 });
 
 window.renderMyGroups = function() {
@@ -136,7 +144,7 @@ window.renderMyGroups = function() {
                     <div class="ledger-info">
                         <h4 style="margin: 0; color: var(--text-light);">${group.name}</h4>
                         <p style="margin: 5px 0 0 0; color: var(--text-muted); font-size: 0.9rem;">
-                            <span style="text-transform: capitalize;">${group.platform}</span> | ${group.category}
+                            <span style="text-transform: capitalize;">${group.platform}</span> ${group.type ? `(${group.type})` : ''} | ${group.category}
                         </p>
                     </div>
                     ${statusHtml}
@@ -168,4 +176,4 @@ function renderNotifications(notifs) {
             </div>
         `;
     });
-        }
+}
