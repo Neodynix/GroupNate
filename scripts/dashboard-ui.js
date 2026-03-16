@@ -11,11 +11,22 @@ const categories = ["Art & Design", "Automotive", "Business", "Career", "Crypto"
 
 // --- Regex Patterns (SPAM DETECTORS) ---
 const linkPatterns = {
+    // Allows optional query parameters like ?event=123
     discord: /^(https?:\/\/)?(discord\.gg|discord\.com\/invite)\/[a-zA-Z0-9-]+(\?[a-zA-Z0-9_=&%-]+)?$/i,
+    
+    // Allows optional query parameters
     telegram: /^(https?:\/\/)?(t\.me|telegram\.me)\/[a-zA-Z0-9_]+(\?[a-zA-Z0-9_=&%-]+)?$/i,
+    
+    // The WhatsApp fix we just did
     whatsapp: /^(https?:\/\/)?chat\.whatsapp\.com\/[a-zA-Z0-9]+(\?[a-zA-Z0-9_=&-]+)?$/i,
+    
+    // Allows optional query parameters like ?ref=share
     facebook: /^(https?:\/\/)?(www\.)?facebook\.com\/groups\/[a-zA-Z0-9_.-]+\/?(\?[a-zA-Z0-9_=&%-]+)?$/i,
+    
+    // Allows optional query parameters
     reddit: /^(https?:\/\/)?(www\.)?reddit\.com\/r\/[a-zA-Z0-9_]+\/?(\?[a-zA-Z0-9_=&%-]+)?$/i,
+    
+    // Fixed to actually allow the invite code after ig.me/j/, plus query parameters
     instagram: /^(https?:\/\/)?(ig\.me\/j\/[a-zA-Z0-9_-]+|www\.instagram\.com\/[a-zA-Z0-9_.-]+)\/?(\?[a-zA-Z0-9_=&%-]+)?$/i
 };
 const emojiRegex = /([\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF])/g;
@@ -31,6 +42,7 @@ async function initUI() {
         categories.sort().forEach(cat => subCategory.appendChild(new Option(cat, cat)));
     }
     
+    // Fetch Countries dynamically from a free public API
     if (subCountry) {
         subCountry.innerHTML = '<option value="">Loading Countries...</option>';
         try {
@@ -38,7 +50,7 @@ async function initUI() {
             const data = await res.json();
             subCountry.innerHTML = '<option value="">Select Country</option>';
             data.data.forEach(country => subCountry.appendChild(new Option(country.name, country.name)));
-            subCountry.appendChild(new Option("Global (Online)", "Global"));
+            subCountry.appendChild(new Option("Global (Online)", "Global")); // Add global option
         } catch (err) {
             console.error("Failed to load countries", err);
             subCountry.innerHTML = '<option value="">Error loading locations</option>';
@@ -49,7 +61,6 @@ async function initUI() {
 }
 
 // --- Menu & Modal Toggles ---
-
 window.toggleDashboardMenu = () => {
     const menu = document.getElementById("dashboardMenu");
     if (menu) {
@@ -74,12 +85,14 @@ window.switchView = (viewName, el) => {
         setTimeout(() => selectedView.classList.add("active"), 10);
     }
     
+    // Update Side Menu active state
     document.querySelectorAll(".nav-link").forEach(l => l.classList.remove("active"));
     if (el) {
         const linkElement = el.target ? (el.target.closest('.nav-link') || el.currentTarget) : el.currentTarget;
         if (linkElement && linkElement.classList.contains('nav-link')) linkElement.classList.add("active");
     }
     
+    // Update Bottom Nav active state
     document.querySelectorAll(".nav-tab").forEach(t => t.classList.remove("active"));
     if (el) {
          const tabElement = el.target ? (el.target.closest('.nav-tab') || el.currentTarget) : el.currentTarget;
@@ -100,6 +113,7 @@ window.openLogoutModal = () => document.getElementById("logoutModal")?.classList
 window.closeModals = () => {
     document.querySelectorAll(".overlay:not(#authGate)").forEach(m => m.classList.add("hidden"));
     const iframe = document.getElementById('gatewayIframe');
+    // Clear iframe to stop background processes from the payment gateway
     if (iframe) {
         iframe.src = 'about:blank';
         iframe.removeAttribute('srcdoc');
@@ -116,6 +130,7 @@ function setupFormListeners() {
     const subDescription = document.getElementById("subDescription");
     const subName = document.getElementById("subName");
 
+    // Dynamically fetch cities when a country is selected
     subCountry?.addEventListener("change", async function() {
         if(!subCity) return;
         
@@ -242,6 +257,7 @@ window.validateForm = function() {
     const isLinkValid = linkSuccess ? !linkSuccess.classList.contains("hidden") : true;
     const isDescValid = descSuccess ? !descSuccess.classList.contains("hidden") : true;
 
+    // --- Subscribe Button Override Logic ---
     const isPremiumCategory = isCategorySet && window.premiumCategories.includes(subCategory.value);
     const isFreePlan = window.userPlan === 'Free' || !window.userPlan;
 
