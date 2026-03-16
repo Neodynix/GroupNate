@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="styles/main.css">
     <link rel="stylesheet" href="styles/admin.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 </head>
 <body>
 
@@ -29,9 +30,16 @@
             <h2>Admin Access</h2>
             <p style="color: var(--text-muted); margin-bottom: 25px; font-size: 0.9rem;">Restricted area. Please sign in.</p>
             <form id="adminLoginForm">
-                <input type="email" id="adminEmail" class="glass-input" placeholder="Admin Email" required>
+                <input type="email" id="adminEmail" class="glass-input" placeholder="Admin Email" required style="margin-bottom: 15px;">
                 <input type="password" id="adminPassword" class="glass-input" placeholder="Password" required>
-                <button type="submit" class="action-btn" id="loginBtn" style="margin-top: 15px;">Login to Portal</button>
+                
+                <div style="margin-top: 20px; display: flex; justify-content: center; width: 100%;">
+                    <div style="transform: scale(0.85); transform-origin: center; margin: -5px 0;">
+                        <div class="cf-turnstile" data-sitekey="0x4AAAAAACrrAa7pP25iIWQk" data-size="normal"></div>
+                    </div>
+                </div>
+
+                <button type="submit" class="action-btn" id="loginBtn" style="margin-top: 15px; width: 100%;">Login to Portal</button>
             </form>
             <p id="loginError" style="color: #ff4757; margin-top: 15px; font-size: 0.85rem; display: none;"></p>
         </div>
