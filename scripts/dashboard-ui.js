@@ -11,14 +11,24 @@ const categories = ["Art & Design", "Automotive", "Business", "Career", "Crypto"
 
 // --- Regex Patterns (SPAM DETECTORS) ---
 const linkPatterns = {
-    discord: /^(https?:\/\/)?(discord\.gg|discord\.com\/invite)\/[a-zA-Z0-9-]+$/i,
-    telegram: /^(https?:\/\/)?(t\.me|telegram\.me)\/[a-zA-Z0-9_]+$/i,
-    whatsapp: /^(https?:\/\/)?chat\.whatsapp\.com\/[a-zA-Z0-9]+$/i,
-    facebook: /^(https?:\/\/)?(www\.)?facebook\.com\/groups\/[a-zA-Z0-9_.-]+\/?$/i,
-    reddit: /^(https?:\/\/)?(www\.)?reddit\.com\/r\/[a-zA-Z0-9_]+\/?$/i,
-    instagram: /^(https?:\/\/)?(ig\.me\/j\/|www\.instagram\.com\/[a-zA-Z0-9_.]+\/?)$/i
+    // Allows optional query parameters like ?event=123
+    discord: /^(https?:\/\/)?(discord\.gg|discord\.com\/invite)\/[a-zA-Z0-9-]+(\?[a-zA-Z0-9_=&%-]+)?$/i,
+    
+    // Allows optional query parameters
+    telegram: /^(https?:\/\/)?(t\.me|telegram\.me)\/[a-zA-Z0-9_]+(\?[a-zA-Z0-9_=&%-]+)?$/i,
+    
+    // The WhatsApp fix we just did
+    whatsapp: /^(https?:\/\/)?chat\.whatsapp\.com\/[a-zA-Z0-9]+(\?[a-zA-Z0-9_=&-]+)?$/i,
+    
+    // Allows optional query parameters like ?ref=share
+    facebook: /^(https?:\/\/)?(www\.)?facebook\.com\/groups\/[a-zA-Z0-9_.-]+\/?(\?[a-zA-Z0-9_=&%-]+)?$/i,
+    
+    // Allows optional query parameters
+    reddit: /^(https?:\/\/)?(www\.)?reddit\.com\/r\/[a-zA-Z0-9_]+\/?(\?[a-zA-Z0-9_=&%-]+)?$/i,
+    
+    // Fixed to actually allow the invite code after ig.me/j/, plus query parameters
+    instagram: /^(https?:\/\/)?(ig\.me\/j\/[a-zA-Z0-9_-]+|www\.instagram\.com\/[a-zA-Z0-9_.-]+)\/?(\?[a-zA-Z0-9_=&%-]+)?$/i
 };
-
 const emojiRegex = /([\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF])/g;
 const gibberishRegex = /(.)\1{3,}|[bcdfghjklmnpqrstvwxz]{6,}/i; 
 
