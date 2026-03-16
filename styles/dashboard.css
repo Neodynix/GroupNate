@@ -431,5 +431,17 @@ textarea.glass-input {
     color: var(--accent); 
     -webkit-transform: translateY(-2px);
     transform: translateY(-2px); /* Slight lift on the active tab */
+}
+
+/* --- CAPTCHA Mobile Wrapper --- */
+.captcha-wrapper {
+    margin-bottom: 20px; 
+    display: flex; 
+    justify-content: center; 
+    width: 100%;
+    -webkit-transform: scale(0.85);
+    transform: scale(0.85); 
+    -webkit-transform-origin: center;
+    transform-origin: center; 
+    margin-top: -5px;
     }
-    
