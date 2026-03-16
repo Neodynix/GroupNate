@@ -142,13 +142,18 @@ window.populateAnnouncementsTable = function(announcements) {
 // --- DOM Controls & Modals ---
 
 window.openReviewModal = function(groupId) {
-    // Find the group in our global array
-    const group = window.allCommunities.find(g => g.id === groupId);
-    if (!group) return;
+    // FORCE both IDs to be strings so they always match perfectly
+    const group = window.allCommunities.find(g => String(g.id) === String(groupId));
+    
+    if (!group) {
+        window.customAlert("Error", "Could not load group details. Try refreshing the page.");
+        return;
+    }
 
+    // Populate the modal with the group's exact details
     document.getElementById('reviewName').innerText = group.name;
     document.getElementById('reviewMeta').innerText = `${group.platform} | ${group.category} | ${group.is_premium ? 'Premium Category' : 'Standard'}`;
-    document.getElementById('reviewDesc').innerText = group.description;
+    document.getElementById('reviewDesc').innerText = group.description || "No description provided.";
     
     const linkBtn = document.getElementById('reviewLink');
     linkBtn.href = group.link;
@@ -157,15 +162,17 @@ window.openReviewModal = function(groupId) {
     const approveBtn = document.getElementById('approveBtn');
     const rejectBtn = document.getElementById('rejectBtn');
 
-    // Clone to remove old listeners
+    // Clone to remove old listeners (prevents clicking 'Approve' and approving 5 groups at once)
     const newApprove = approveBtn.cloneNode(true);
     const newReject = rejectBtn.cloneNode(true);
     approveBtn.parentNode.replaceChild(newApprove, approveBtn);
     rejectBtn.parentNode.replaceChild(newReject, rejectBtn);
 
+    // Add the fresh click events
     newApprove.addEventListener('click', () => window.updateGroupStatus(group.id, group.user_id, group.name, 'live'));
     newReject.addEventListener('click', () => window.updateGroupStatus(group.id, group.user_id, group.name, 'rejected'));
 
+    // Finally, open the modal!
     window.openModal('reviewModal');
 };
 
