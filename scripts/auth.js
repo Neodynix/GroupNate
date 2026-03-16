@@ -23,7 +23,9 @@ document.addEventListener("DOMContentLoaded", () => {
             const isLogin = document.getElementById('authTitle').innerText.includes('Welcome Back');
             
             // Basic Validation
-            if (!email || !password) return alert("Please enter your email and password.");
+            if (!email || !password) {
+                return alert("Please enter your email and password.");
+            }
             
             if (!isLogin) {
                 if (!username) return alert("Please provide a username.");
@@ -36,14 +38,24 @@ document.addEventListener("DOMContentLoaded", () => {
             submitBtn.disabled = true;
 
             try {
-                if (isLogin) {
-                    const { error } = await window.supabaseClient.auth.signInWithPassword({ email, password });
-                    if (error) throw error;
-                } else {
-                    // Grab Cloudflare Turnstile token
-                    const captchaToken = document.querySelector('[name="cf-turnstile-response"]')?.value;
-                    if (!captchaToken) return alert("Please complete the security check.");
+                // Grab the Cloudflare Turnstile token FIRST for both Login and Sign Up
+                const captchaToken = document.querySelector('[name="cf-turnstile-response"]')?.value;
+                if (!captchaToken) {
+                    throw new Error("Please complete the security check box.");
+                }
 
+                if (isLogin) {
+                    // LOG IN: Pass the captcha token here too!
+                    const { error } = await window.supabaseClient.auth.signInWithPassword({ 
+                        email: email, 
+                        password: password,
+                        options: {
+                            captchaToken: captchaToken
+                        }
+                    });
+                    if (error) throw error;
+                    
+                } else {
                     // SIGN UP: Pass username and captcha token
                     const { error } = await window.supabaseClient.auth.signUp({ 
                         email: email, 
@@ -62,6 +74,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             } catch (error) {
                 alert(error.message);
+                // Reset the captcha widget so they can try again without refreshing the whole page
+                if (window.turnstile) {
+                    window.turnstile.reset();
+                }
             } finally {
                 submitBtn.innerHTML = originalText;
                 submitBtn.disabled = false;
@@ -103,6 +119,11 @@ window.toggleAuthMode = function() {
         
         document.getElementById('authUsername').removeAttribute('required');
         document.getElementById('authConfirmPassword').removeAttribute('required');
+    }
+    
+    // Reset Turnstile widget when switching modes so it gets a fresh token
+    if (window.turnstile) {
+        window.turnstile.reset();
     }
 };
 
@@ -181,6 +202,11 @@ window.supabaseClient.auth.onAuthStateChange((event, session) => {
         window.currentUser = null;
         if(dashboardApp) dashboardApp.classList.add('hidden');
         if(authGate) authGate.classList.remove('hidden');
+        
+        // Ensure Turnstile renders if they are logged out
+        if (window.turnstile) {
+            window.turnstile.reset();
+        }
     }
 });
 
