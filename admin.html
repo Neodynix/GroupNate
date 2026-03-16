@@ -6,10 +6,8 @@
     <title>GroupNate | Admin Portal</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
     <link rel="stylesheet" href="styles/main.css">
     <link rel="stylesheet" href="styles/admin.css">
-    
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
@@ -51,7 +49,7 @@
         </header>
 
         <aside class="admin-sidebar glass-panel" id="sidebar">
-            <div class="sidebar-header" style="padding: 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--glass-border);">
+            <div class="sidebar-header" style="padding: 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1);">
                 <h3>Admin Menu</h3>
                 <button class="close-btn" onclick="toggleSidebar()" style="background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer;"><i class="fa-solid fa-xmark"></i></button>
             </div>
@@ -62,8 +60,8 @@
                 <li class="nav-item" onclick="switchView('groups', this); toggleSidebar();"><i class="fa-solid fa-cubes"></i> Groups</li>
                 <li class="nav-item" onclick="switchView('announcements', this); toggleSidebar();"><i class="fa-solid fa-bullhorn"></i> Announcements</li>
             </ul>
-            <div class="sidebar-footer" style="padding: 20px; border-top: 1px solid var(--glass-border);">
-                <button class="action-btn" style="background: transparent; border: 1px solid var(--glass-border); color: var(--text-muted);" onclick="adminLogout()"><i class="fa-solid fa-arrow-right-from-bracket"></i> Logout</button>
+            <div class="sidebar-footer" style="padding: 20px; border-top: 1px solid rgba(255,255,255,0.1);">
+                <button class="action-btn" style="background: transparent; border: 1px solid rgba(255,255,255,0.1); color: var(--text-muted);" onclick="adminLogout()"><i class="fa-solid fa-arrow-right-from-bracket"></i> Logout</button>
             </div>
         </aside>
 
@@ -104,7 +102,7 @@
                 <div class="header-actions"><h1>Platform Groups</h1></div>
                 <div class="table-container glass-panel">
                     <table>
-                        <thead><tr><th>Group Name</th><th>Members</th><th>Status</th><th>Actions</th></tr></thead>
+                        <thead><tr><th>Community Info</th><th>Status</th><th>Actions</th></tr></thead>
                         <tbody id="groupsTable"></tbody>
                     </table>
                 </div>
@@ -157,6 +155,47 @@
             <div style="display: flex; gap: 10px; margin-top: 15px;">
                 <button class="action-btn" style="background: rgba(255,255,255,0.1); color: white;" onclick="closeModal('announcementModal')">Cancel</button>
                 <button class="action-btn" onclick="saveAnnouncement()">Post Alert</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="overlay hidden" id="reviewModal" style="z-index: 100000;">
+        <div class="preview-modal glass-panel" style="padding: 25px; max-width: 450px; width: 90%;">
+            <h3 style="margin-bottom: 5px;">Review Community</h3>
+            <div style="margin-bottom: 15px;">
+                <strong id="reviewName" style="font-size: 1.2rem; display: block; color: white;"></strong>
+                <span id="reviewMeta" style="color: var(--text-muted); font-size: 0.85rem; text-transform: capitalize;"></span>
+            </div>
+            
+            <p id="reviewDesc" style="font-size: 0.9rem; margin-bottom: 15px; background: rgba(0,0,0,0.3); padding: 12px; border-radius: 12px; color: #ccc; max-height: 120px; overflow-y: auto;"></p>
+            
+            <a id="reviewLink" href="#" target="_blank" class="action-btn" style="display: block; text-align: center; text-decoration: none; background: #3498db; margin-bottom: 15px;">
+                <i class="fa-solid fa-arrow-up-right-from-square"></i> Visit Link to Verify
+            </a>
+            
+            <div style="display: flex; gap: 10px;" id="reviewActions">
+                <button class="action-btn" id="rejectBtn" style="background: #ff4757;">Reject</button>
+                <button class="action-btn" id="approveBtn" style="background: #2ed573;">Approve</button>
+                <button class="action-btn" style="background: rgba(255,255,255,0.1);" onclick="closeModal('reviewModal')">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="overlay hidden" id="customAlertModal" style="z-index: 100001;">
+        <div class="preview-modal glass-panel" style="padding: 25px; max-width: 350px; width: 90%; text-align: center;">
+            <h3 id="alertTitle" style="margin-bottom: 10px;">Alert</h3>
+            <p id="alertMessage" style="color: var(--text-muted); margin-bottom: 20px; font-size: 0.95rem;"></p>
+            <button class="action-btn full-width" onclick="closeModal('customAlertModal')">OK</button>
+        </div>
+    </div>
+
+    <div class="overlay hidden" id="customConfirmModal" style="z-index: 100001;">
+        <div class="preview-modal glass-panel" style="padding: 25px; max-width: 350px; width: 90%; text-align: center;">
+            <h3 id="confirmTitle" style="margin-bottom: 10px;">Confirm</h3>
+            <p id="confirmMessage" style="color: var(--text-muted); margin-bottom: 20px; font-size: 0.95rem;"></p>
+            <div style="display: flex; gap: 10px;">
+                <button class="action-btn" style="background: rgba(255,255,255,0.1); color: white;" onclick="closeModal('customConfirmModal')">Cancel</button>
+                <button class="action-btn" id="confirmActionBtn" style="background: #e94560;">Yes, Proceed</button>
             </div>
         </div>
     </div>
