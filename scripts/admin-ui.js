@@ -2,6 +2,33 @@
 // admin-ui.js - Renderers & DOM Manipulation
 // ==========================================
 
+// --- CUSTOM UI MODALS (Replaces alert and confirm) ---
+window.customAlert = function(title, message) {
+    document.getElementById('alertTitle').innerText = title;
+    document.getElementById('alertMessage').innerText = message;
+    window.openModal('customAlertModal');
+};
+
+window.customConfirm = function(title, message, onConfirmCallback) {
+    document.getElementById('confirmTitle').innerText = title;
+    document.getElementById('confirmMessage').innerText = message;
+    
+    const confirmBtn = document.getElementById('confirmActionBtn');
+    
+    // Remove old listeners to prevent double-firing
+    const newBtn = confirmBtn.cloneNode(true);
+    confirmBtn.parentNode.replaceChild(newBtn, confirmBtn);
+    
+    newBtn.addEventListener('click', () => {
+        window.closeModal('customConfirmModal');
+        onConfirmCallback();
+    });
+    
+    window.openModal('customConfirmModal');
+};
+
+// --- TABLE RENDERERS ---
+
 window.populateUsersTable = function(profiles) {
     const tbody = document.getElementById('allUsersTable');
     if (!tbody) return;
@@ -40,13 +67,22 @@ window.populateCommunitiesTable = function(communities) {
     tbody.innerHTML = '';
     
     communities.forEach(community => {
+        // Status Badge formatting
+        let statusBadge = '';
+        if (community.status === 'live') statusBadge = '<span class="badge active">Live</span>';
+        else if (community.status === 'pending') statusBadge = '<span class="badge" style="background: rgba(241,196,15,0.15); color: #f1c40f; border: 1px solid #f1c40f;">Pending</span>';
+        else statusBadge = '<span class="badge suspended">Rejected</span>';
+
         tbody.innerHTML += `
             <tr>
-                <td>${community.name || 'Unnamed Community'}</td>
-                <td>--</td>
-                <td><span class="badge active">Active</span></td>
+                <td>
+                    <strong style="display: block; color: white;">${community.name}</strong>
+                    <span style="font-size: 0.8rem; color: var(--text-muted); text-transform: capitalize;">${community.platform} | ${community.category}</span>
+                </td>
+                <td>${statusBadge}</td>
                 <td>
                     <div class="action-btns">
+                        <button class="action-btn" style="padding: 8px 15px; width: auto; font-size: 0.8rem;" onclick="window.openReviewModal('${community.id}')">Review</button>
                         <button class="btn-icon delete" onclick="window.deleteGroup('${community.id}')"><i class="fa-solid fa-trash"></i></button>
                     </div>
                 </td>
@@ -55,7 +91,7 @@ window.populateCommunitiesTable = function(communities) {
     });
     
     if (communities.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color: var(--text-muted);">No communities found.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color: var(--text-muted);">No communities found.</td></tr>';
     }
 };
 
@@ -93,7 +129,7 @@ window.populateAnnouncementsTable = function(announcements) {
             <tr>
                 <td>${ann.message.substring(0,40)}...</td>
                 <td>${new Date(ann.created_at).toLocaleDateString()}</td>
-                <td><button class="btn-icon delete" onclick="window.supabaseClient.from('announcements').delete().eq('id', '${ann.id}').then(window.loadDashboardData)"><i class="fa-solid fa-trash"></i></button></td>
+                <td><button class="btn-icon delete" onclick="window.customConfirm('Delete Alert', 'Remove this announcement?', () => { window.supabaseClient.from('announcements').delete().eq('id', '${ann.id}').then(window.loadDashboardData); })"><i class="fa-solid fa-trash"></i></button></td>
             </tr>
         `;
     });
@@ -103,32 +139,49 @@ window.populateAnnouncementsTable = function(announcements) {
     }
 };
 
-// --- DOM Controls ---
+// --- DOM Controls & Modals ---
 
-// Toggle the sidebar using your original 'open' classes
+window.openReviewModal = function(groupId) {
+    // Find the group in our global array
+    const group = window.allCommunities.find(g => g.id === groupId);
+    if (!group) return;
+
+    document.getElementById('reviewName').innerText = group.name;
+    document.getElementById('reviewMeta').innerText = `${group.platform} | ${group.category} | ${group.is_premium ? 'Premium Category' : 'Standard'}`;
+    document.getElementById('reviewDesc').innerText = group.description;
+    
+    const linkBtn = document.getElementById('reviewLink');
+    linkBtn.href = group.link;
+
+    // Attach functionality to the approve/reject buttons
+    const approveBtn = document.getElementById('approveBtn');
+    const rejectBtn = document.getElementById('rejectBtn');
+
+    // Clone to remove old listeners
+    const newApprove = approveBtn.cloneNode(true);
+    const newReject = rejectBtn.cloneNode(true);
+    approveBtn.parentNode.replaceChild(newApprove, approveBtn);
+    rejectBtn.parentNode.replaceChild(newReject, rejectBtn);
+
+    newApprove.addEventListener('click', () => window.updateGroupStatus(group.id, group.user_id, group.name, 'live'));
+    newReject.addEventListener('click', () => window.updateGroupStatus(group.id, group.user_id, group.name, 'rejected'));
+
+    window.openModal('reviewModal');
+};
+
 window.toggleSidebar = function() { 
     const sidebar = document.getElementById('sidebar');
     const overlay = document.getElementById('sidebarOverlay');
     
     if (sidebar) sidebar.classList.toggle('open');
-    
     if (overlay) {
-        if (sidebar.classList.contains('open')) {
-            overlay.style.display = 'block';
-        } else {
-            overlay.style.display = 'none';
-        }
+        if (sidebar.classList.contains('open')) overlay.style.display = 'block';
+        else overlay.style.display = 'none';
     }
 };
 
-// Toggle modals using your original 'hidden' class
-window.openModal = function(id) { 
-    document.getElementById(id).classList.remove('hidden'); 
-};
-
-window.closeModal = function(id) { 
-    document.getElementById(id).classList.add('hidden'); 
-};
+window.openModal = function(id) { document.getElementById(id).classList.remove('hidden'); };
+window.closeModal = function(id) { document.getElementById(id).classList.add('hidden'); };
 
 window.openPlanModal = function(userId, email, currentPlan) {
     document.getElementById('editPlanUserId').value = userId;
@@ -137,29 +190,19 @@ window.openPlanModal = function(userId, email, currentPlan) {
     window.openModal('planModal');
 };
 
-// Switch Views and Nav Tabs using your original logic
 window.switchView = function(viewName, clickedElement) {
-    // Reset bottom nav tabs
     if (clickedElement && clickedElement.classList.contains('nav-tab')) { 
         document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active')); 
         clickedElement.classList.add('active'); 
     }
-    
-    // Reset sidebar nav items
     if (clickedElement && clickedElement.classList.contains('nav-item')) { 
         document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active')); 
         clickedElement.classList.add('active'); 
-        
-        // Sync bottom nav with sidebar clicks
         document.querySelectorAll('.nav-tab').forEach(el => { 
             el.classList.remove('active'); 
-            if(el.getAttribute('onclick') && el.getAttribute('onclick').includes(viewName)) {
-                el.classList.add('active'); 
-            }
+            if(el.getAttribute('onclick') && el.getAttribute('onclick').includes(viewName)) el.classList.add('active'); 
         }); 
     }
-    
-    // Hide all views and show the targeted one
     document.querySelectorAll('.admin-view').forEach(el => el.classList.remove('active'));
     document.getElementById('view-' + viewName).classList.add('active');
 };
@@ -175,7 +218,5 @@ window.showLoader = function(text = "Loading...") {
 
 window.hideLoader = function() { 
     const loader = document.getElementById('adminLoader'); 
-    if (loader) {
-        loader.classList.add('hidden');
-    }
+    if (loader) loader.classList.add('hidden');
 };
