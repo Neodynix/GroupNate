@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /admin.html
+Disallow: /scripts/admin-*.js
+
+Sitemap: https://groupnate.pages.dev/sitemap.xml
