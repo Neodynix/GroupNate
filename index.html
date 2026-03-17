@@ -3,9 +3,53 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GroupNate | Discover Groups</title>
+    
+    <title>GroupNate | Discover & Join Active Communities</title>
+    <meta name="description" content="GroupNate is the ultimate directory to discover and join the best WhatsApp groups, Telegram channels, Discord servers, and Reddit communities.">
+    <meta name="keywords" content="WhatsApp groups, Telegram channels, Discord servers, Reddit communities, join groups, find communities, GroupNate, group links">
+    <meta name="robots" content="index, follow">
+    <meta name="author" content="Neodynix">
+    <link rel="canonical" href="https://groupnate.pages.dev/">
+    
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://groupnate.pages.dev/">
+    <meta property="og:title" content="GroupNate | Discover Active Communities">
+    <meta property="og:description" content="Find the best groups and channels across all major social platforms. Join the conversation today.">
+    <meta property="og:image" content="https://groupnate.pages.dev/assets/seo-banner.jpg">
+
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://groupnate.pages.dev/">
+    <meta property="twitter:title" content="GroupNate | Discover Active Communities">
+    <meta property="twitter:description" content="Find the best groups and channels across all major social platforms. Join the conversation today.">
+    <meta property="twitter:image" content="https://groupnate.pages.dev/assets/seo-banner.jpg">
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="styles/main.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        .agency-card {
+            border: 1px solid rgba(255, 215, 0, 0.5) !important;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.15) !important;
+            position: relative;
+            overflow: hidden;
+        }
+        .agency-badge {
+            position: absolute;
+            top: 12px;
+            right: -30px;
+            background: linear-gradient(45deg, #FFD700, #FDB931);
+            color: #000;
+            font-size: 0.7rem;
+            font-weight: 800;
+            padding: 5px 35px;
+            transform: rotate(45deg);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            z-index: 10;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+    </style>
 </head>
 <body>
 
@@ -97,13 +141,12 @@
         </div>
     </section>
 
-    <main class="grid-container" id="groupGrid">
-    </main>
+    <main class="grid-container" id="groupGrid"></main>
 
     <footer class="glass-footer">
         <button class="nav-btn"><i class="fa-solid fa-backward-step"></i> First</button>
         <button class="nav-btn"><i class="fa-solid fa-chevron-left"></i> Prev</button>
-        <span class="page-info">Page 1 of 5</span>
+        <span class="page-info">Page 1 of --</span>
         <button class="nav-btn">Next <i class="fa-solid fa-chevron-right"></i></button>
     </footer>
 
@@ -147,4 +190,4 @@
 
     <script src="scripts/main.js"></script>
 </body>
-    </html>
+        </html>
