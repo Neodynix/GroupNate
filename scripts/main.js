@@ -53,7 +53,8 @@ async function init() {
 async function fetchLiveGroups() {
     groupGrid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;"><i class="fa-solid fa-circle-notch fa-spin fa-3x" style="color:var(--accent);"></i><p style="margin-top:15px;color:var(--text-muted);">Finding communities...</p></div>';
     
-    const { data, error } = await supabaseClient
+    // 1. Fetch live communities
+    const { data: communities, error } = await supabaseClient
         .from('communities')
         .select('*')
         .eq('status', 'live');
@@ -63,7 +64,26 @@ async function fetchLiveGroups() {
         return;
     }
     
-    allGroups = data || [];
+    // 2. Safely fetch the usernames from the profiles table
+    const userIds = [...new Set((communities || []).map(g => g.user_id))];
+    let profiles = [];
+    
+    if (userIds.length > 0) {
+        const { data: profData } = await supabaseClient
+            .from('profiles')
+            .select('id, username')
+            .in('id', userIds);
+        profiles = profData || [];
+    }
+
+    // Map the usernames to the group data
+    allGroups = (communities || []).map(group => {
+        const userProfile = profiles.find(p => p.id === group.user_id);
+        return {
+            ...group,
+            poster: userProfile?.username || 'Verified Creator' // Fallback just in case
+        };
+    });
 
     // --- MAGIC SORTING: Push Premium/Agency groups to the absolute top ---
     allGroups.sort((a, b) => {
@@ -87,7 +107,6 @@ async function fetchLiveGroups() {
 function injectDynamicSEO(groups) {
     if (!groups || groups.length === 0) return;
 
-    // Grab the top 3 categories and top 3 group names to rewrite the meta description
     const topCategories = [...new Set(groups.map(g => g.category))].slice(0, 3).join(', ');
     const topNames = groups.slice(0, 3).map(g => g.name).join(', ');
     
@@ -96,7 +115,6 @@ function injectDynamicSEO(groups) {
         metaDesc.setAttribute("content", `Join communities like ${topNames}. Explore top groups in ${topCategories} on GroupNate today.`);
     }
 
-    // Generate JSON-LD Structured Data for Google's Algorithm
     const schema = {
         "@context": "https://schema.org",
         "@type": "ItemList",
@@ -114,7 +132,6 @@ function injectDynamicSEO(groups) {
         }))
     };
     
-    // Inject the invisible script into the page head
     let script = document.createElement('script');
     script.type = "application/ld+json";
     script.text = JSON.stringify(schema);
@@ -310,7 +327,9 @@ function applyFilters() {
 function updatePagination() {
     const totalPages = Math.ceil(currentGroups.length / itemsPerPage) || 1;
     if (currentPage > totalPages) currentPage = totalPages;
-    pageInfo.innerText = `Page ${currentPage} of ${totalPages}`;
+    
+    // NEW FORMAT: Just "Page X"
+    pageInfo.innerText = `Page ${currentPage}`;
 
     const start = (currentPage - 1) * itemsPerPage;
     const paginatedItems = currentGroups.slice(start, start + itemsPerPage);
@@ -345,12 +364,13 @@ function renderGroups(groups) {
         const term = getTerminology(group.platform, group.type);
         const card = document.createElement('div');
         
-        // --- AGENCY BADGE LOGIC ---
         const isAgency = group.is_premium; 
         const agencyClass = isAgency ? 'agency-card' : '';
         const agencyBadge = isAgency ? '<div class="agency-badge"><i class="fa-solid fa-rocket"></i> Featured</div>' : '';
         
         card.className = `group-card ${getPlatformClass(group.platform)} ${agencyClass} reveal-on-scroll`;
+        
+        // RESTORED USERNAME TO THE FOOTER
         card.innerHTML = `
             ${agencyBadge}
             <div class="card-bar"></div>
@@ -366,7 +386,8 @@ function renderGroups(groups) {
             <div class="card-footer">
                 <button class="join-btn" onclick="showPreview('${group.id}')">Join ${term}</button>
                 <div class="poster-info">
-                    <div style="font-size: 0.75rem;"><i class="fa-solid fa-calendar-days"></i> Listed: ${formatDate(group.created_at)}</div>
+                    <div style="font-size: 0.8rem; margin-bottom: 3px; font-weight: 600;"><i class="fa-solid fa-user"></i> ${group.poster}</div>
+                    <div style="font-size: 0.7rem; color: var(--text-muted);"><i class="fa-solid fa-calendar-days"></i> Listed: ${formatDate(group.created_at)}</div>
                 </div>
             </div>`;
         fragment.appendChild(card);
