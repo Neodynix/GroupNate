@@ -328,15 +328,25 @@ function updatePagination() {
     const totalPages = Math.ceil(currentGroups.length / itemsPerPage) || 1;
     if (currentPage > totalPages) currentPage = totalPages;
     
-    // NEW FORMAT: Just "Page X"
-    pageInfo.innerText = `Page ${currentPage}`;
+    // Select elements by ID for total accuracy
+    const pageDisplay = document.getElementById('pageDisplay');
+    const btnFirst = document.getElementById('btnFirst');
+    const btnPrev = document.getElementById('btnPrev');
+    const btnNext = document.getElementById('btnNext');
+
+    if (pageDisplay) pageDisplay.innerText = `Page ${currentPage}`;
+
+    // Disable buttons if there's nowhere to go
+    if (btnPrev) btnPrev.disabled = (currentPage === 1);
+    if (btnFirst) btnFirst.disabled = (currentPage === 1);
+    if (btnNext) btnNext.disabled = (currentPage === totalPages);
 
     const start = (currentPage - 1) * itemsPerPage;
     const paginatedItems = currentGroups.slice(start, start + itemsPerPage);
 
     renderGroups(paginatedItems);
     window.scrollTo({ top: 0, behavior: 'smooth' }); 
-}
+        }
 
 // --- 11. Rendering ---
 function getPlatformIcon(platform) {
