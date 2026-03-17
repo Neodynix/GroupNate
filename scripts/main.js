@@ -1,395 +1,193 @@
-// --- 1. Data Simulation ---
-const categories = [
-    "Art & Design", "Automotive", "Business", "Career", "Crypto", "Dating", 
-    "Education", "Entertainment", "Fashion", "Fitness", "Food", "Gaming", 
-    "Health", "Hobbies", "Investments", "Jobs", "Lifestyle", "Memes", "Music", 
-    "News", "Pets", "Politics", "Real Estate", "Science", "Shopping", "Sports", 
-    "Technology", "Travel", "Writing"
-];
-
-const locations = {
-    "USA": ["New York", "Los Angeles", "Chicago", "Houston", "San Francisco"],
-    "India": ["Mumbai", "Delhi", "Bangalore", "Hyderabad"],
-    "Nigeria": ["Lagos", "Abuja", "Kano", "Ibadan"],
-    "UK": ["London", "Manchester", "Birmingham"],
-    "Brazil": ["Sao Paulo", "Rio de Janeiro", "Brasilia"],
-    "Kenya": ["Nairobi", "Mombasa", "Kisumu"]
-};
-
-// Helper to determine the accurate community type
-function getGroupType(platform) {
-    if (platform === 'discord') return 'Server';
-    if (platform === 'reddit') return 'Community';
-    if (platform === 'instagram') return 'Channel';
-    // Telegram, WhatsApp, and Facebook can be either
-    return Math.random() > 0.5 ? 'Group' : 'Channel'; 
-}
-
-// Generate Mock Data for 60 Communities
-let allGroups = [];
-const platforms = ["facebook", "whatsapp", "reddit", "discord", "telegram", "instagram"];
-
-for(let i=1; i<=60; i++) {
-    const randomCountry = Object.keys(locations)[Math.floor(Math.random() * Object.keys(locations).length)];
-    const randomCity = locations[randomCountry][Math.floor(Math.random() * locations[randomCountry].length)];
-    const randomPlatform = platforms[Math.floor(Math.random()*platforms.length)];
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    allGroups.push({
-        id: i,
-        name: `Group ${categories[Math.floor(Math.random()*categories.length)]} ${i}`,
-        platform: randomPlatform,
-        type: getGroupType(randomPlatform), // Used for the Smart Toggle
-        category: categories[Math.floor(Math.random()*categories.length)],
-        country: randomCountry,
-        city: randomCity,
-        description: "Join our active community to discuss daily topics, share tips, and connect with like-minded people!",
-        poster: `user_${i}`,
-        time: `${Math.floor(Math.random() * 24) + 1} hrs ago`
-    });
-}
+    <title>GroupNate | Discover & Join Active Communities</title>
+    <meta name="description" content="GroupNate is the ultimate directory to discover and join the best WhatsApp groups, Telegram channels, Discord servers, and Reddit communities.">
+    <meta name="keywords" content="WhatsApp groups, Telegram channels, Discord servers, Reddit communities, join groups, find communities, GroupNate, group links">
+    <meta name="robots" content="index, follow">
+    <meta name="author" content="Neodynix">
+    <link rel="canonical" href="https://groupnate.pages.dev/">
+    
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://groupnate.pages.dev/">
+    <meta property="og:title" content="GroupNate | Discover Active Communities">
+    <meta property="og:description" content="Find the best groups and channels across all major social platforms. Join the conversation today.">
+    <meta property="og:image" content="https://groupnate.pages.dev/assets/seo-banner.jpg">
 
-allGroups.sort((a, b) => a.name.localeCompare(b.name));
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://groupnate.pages.dev/">
+    <meta property="twitter:title" content="GroupNate | Discover Active Communities">
+    <meta property="twitter:description" content="Find the best groups and channels across all major social platforms. Join the conversation today.">
+    <meta property="twitter:image" content="https://groupnate.pages.dev/assets/seo-banner.jpg">
 
-// --- 2. State Management ---
-let currentGroups = [...allGroups]; 
-let currentPage = 1;
-const itemsPerPage = 8; 
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles/main.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-// --- 3. DOM Elements ---
-const groupGrid = document.getElementById('groupGrid');
-const searchContainer = document.getElementById('searchContainer');
-const filterContainer = document.getElementById('filterContainer');
-const searchInput = searchContainer.querySelector('input');
-const sideMenu = document.querySelector('.side-menu');
-
-const categorySelect = document.getElementById('categorySelect');
-const countrySelect = document.getElementById('countrySelect');
-const citySelect = document.getElementById('citySelect');
-const platformIcons = document.querySelectorAll('.platform-icons i');
-
-// Smart UI Elements
-const typeFilterGroup = document.getElementById('typeFilterGroup');
-const typeBtns = document.querySelectorAll('.type-btn');
-
-const btnFirst = document.querySelector('.glass-footer .nav-btn:first-child');
-const btnPrev = document.querySelector('.glass-footer .nav-btn:nth-child(2)');
-const btnNext = document.querySelector('.glass-footer .nav-btn:last-child');
-const pageInfo = document.querySelector('.page-info');
-
-// --- 4. Initialization ---
-function init() {
-    populateDropdowns();
-    setupEventListeners();
-    updatePagination();
-}
-
-// --- 5. Helpers ---
-function debounce(func, wait) {
-    let timeout;
-    return function(...args) {
-        clearTimeout(timeout);
-        timeout = setTimeout(() => func.apply(this, args), wait);
-    };
-}
-
-const cardObserver = new IntersectionObserver((entries, observer) => {
-    entries.forEach(entry => {
-        if(entry.isIntersecting) {
-            entry.target.classList.add('is-visible');
-            observer.unobserve(entry.target);
+    <style>
+        .agency-card {
+            border: 1px solid rgba(255, 215, 0, 0.5) !important;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.15) !important;
+            position: relative;
+            overflow: hidden;
         }
-    });
-}, { threshold: 0.1 });
-
-// Dynamic terminology for the buttons
-function getTerminology(platform) {
-    switch(platform) {
-        case 'discord': return 'Server';
-        case 'reddit': return 'Community';
-        case 'telegram': return 'Channel';
-        case 'facebook': return 'Group';
-        case 'whatsapp': return 'Group';
-        case 'instagram': return 'Channel';
-        default: return 'Group';
-    }
-}
-
-// --- 6. Event Listeners ---
-function setupEventListeners() {
-    // Search Filter
-    searchInput.addEventListener('input', debounce((e) => {
-        const query = e.target.value.toLowerCase();
-        currentGroups = allGroups.filter(group => 
-            group.name.toLowerCase().includes(query) || 
-            group.description.toLowerCase().includes(query)
-        );
-        currentPage = 1; 
-        updatePagination();
-    }, 300));
-
-    // Pagination
-    btnFirst.addEventListener('click', () => { currentPage = 1; updatePagination(); });
-    btnPrev.addEventListener('click', () => { if (currentPage > 1) { currentPage--; updatePagination(); }});
-    btnNext.addEventListener('click', () => {
-        const maxPage = Math.ceil(currentGroups.length / itemsPerPage);
-        if (currentPage < maxPage) { currentPage++; updatePagination(); }
-    });
-
-    // Social Media Icons
-    platformIcons.forEach(icon => {
-        icon.addEventListener('click', function() { 
-            this.classList.toggle('active'); 
-            updateSmartUI();
-            runLiveFilter();
-        });
-    });
-
-    // Smart Type Toggle Buttons
-    if (typeBtns) {
-        typeBtns.forEach(btn => {
-            btn.addEventListener('click', function() {
-                typeBtns.forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
-                runLiveFilter();
-            });
-        });
-    }
-
-    // Dropdowns
-    categorySelect.addEventListener('change', runLiveFilter);
-    countrySelect.addEventListener('change', runLiveFilter);
-    citySelect.addEventListener('change', runLiveFilter);
-
-    // Modal Click-Outside Logic
-    document.addEventListener('click', (e) => {
-        const overlay = document.getElementById('previewOverlay');
-        if (overlay && e.target === overlay) closePreview();
-    });
-}
-
-// --- 7. Core Logic & Filtering ---
-function populateDropdowns() {
-    categories.forEach(cat => {
-        let option = document.createElement('option');
-        option.value = cat; option.innerText = cat;
-        categorySelect.appendChild(option);
-    });
-
-    Object.keys(locations).forEach(country => {
-        let option = document.createElement('option');
-        option.value = country; option.innerText = country;
-        countrySelect.appendChild(option);
-    });
-
-    countrySelect.addEventListener('change', function() {
-        citySelect.innerHTML = '<option value="">Select City</option>';
-        if(locations[this.value]) {
-            locations[this.value].forEach(city => {
-                let option = document.createElement('option');
-                option.value = city; option.innerText = city;
-                citySelect.appendChild(option);
-            });
+        .agency-badge {
+            position: absolute;
+            top: 12px;
+            right: -30px;
+            background: linear-gradient(45deg, #FFD700, #FDB931);
+            color: #000;
+            font-size: 0.7rem;
+            font-weight: 800;
+            padding: 5px 35px;
+            transform: rotate(45deg);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            z-index: 10;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
-    });
-}
+    </style>
+</head>
+<body>
 
-// Controls when the "Group vs Channel" toggle appears
-function updateSmartUI() {
-    if (!typeFilterGroup) return;
+    <div class="background-blobs">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+    </div>
 
-    const activePlatforms = Array.from(platformIcons)
-        .filter(icon => icon.classList.contains('active'))
-        .map(icon => icon.getAttribute('data-platform'));
-    
-    const singleTypePlatforms = ['discord', 'reddit', 'instagram']; 
-
-    // Hide if the user selected ONLY single-type platforms
-    const shouldHide = activePlatforms.length > 0 && activePlatforms.every(p => singleTypePlatforms.includes(p));
-
-    if (shouldHide) {
-        typeFilterGroup.classList.add('hidden');
-        typeBtns.forEach(b => b.classList.remove('active'));
-        document.querySelector('.type-btn[data-type=""]').classList.add('active');
-    } else {
-        typeFilterGroup.classList.remove('hidden');
-    }
-}
-
-// Re-evaluates all filters instantly
-function runLiveFilter() {
-    const activePlatforms = Array.from(platformIcons)
-        .filter(icon => icon.classList.contains('active'))
-        .map(icon => icon.getAttribute('data-platform'));
-
-    let activeType = "";
-    const activeTypeBtn = document.querySelector('.type-btn.active');
-    if (activeTypeBtn) {
-        activeType = activeTypeBtn.getAttribute('data-type');
-    }
-    
-    const isTypeHidden = typeFilterGroup ? typeFilterGroup.classList.contains('hidden') : false;
-
-    currentGroups = allGroups.filter(group => {
-        const platformMatch = activePlatforms.length === 0 || activePlatforms.includes(group.platform);
-        const categoryMatch = categorySelect.value === "" || group.category === categorySelect.value;
-        const countryMatch = countrySelect.value === "" || group.country === countrySelect.value;
-        const cityMatch = citySelect.value === "" || group.city === citySelect.value;
-        
-        const typeMatch = isTypeHidden || activeType === "" || group.type === activeType;
-
-        return platformMatch && categoryMatch && countryMatch && cityMatch && typeMatch;
-    });
-
-    currentPage = 1;
-    updatePagination(); 
-}
-
-function applyFilters() {
-    runLiveFilter();
-    toggleFilters(); 
-}
-
-function updatePagination() {
-    const totalPages = Math.ceil(currentGroups.length / itemsPerPage) || 1;
-    if (currentPage > totalPages) currentPage = totalPages;
-    pageInfo.innerText = currentPage;
-
-    const start = (currentPage - 1) * itemsPerPage;
-    const paginatedItems = currentGroups.slice(start, start + itemsPerPage);
-
-    renderGroups(paginatedItems);
-    window.scrollTo({ top: 0, behavior: 'smooth' }); 
-}
-
-// --- 8. Rendering ---
-function getPlatformIcon(platform) {
-    const icons = { facebook: 'fa-facebook', whatsapp: 'fa-whatsapp', reddit: 'fa-reddit', discord: 'fa-discord', telegram: 'fa-telegram', instagram: 'fa-instagram' };
-    return icons[platform] || 'fa-link';
-}
-
-function getPlatformClass(platform) {
-    const classes = { facebook: 'fb', whatsapp: 'wa', reddit: 'rd', discord: 'dc', telegram: 'tg', instagram: 'ig' };
-    return classes[platform] || '';
-}
-
-function renderGroups(groups) {
-    groupGrid.innerHTML = '';
-    
-    if(groups.length === 0) {
-        groupGrid.innerHTML = '<div style="grid-column: 1/-1; text-align:center; padding: 40px; color: #ccc;">No communities found. Try adjusting your filters.</div>';
-        return;
-    }
-
-    const fragment = document.createDocumentFragment();
-    let counter = 0;
-
-    groups.forEach((group) => {
-        const term = getTerminology(group.platform);
-        const card = document.createElement('div');
-        card.className = `group-card ${getPlatformClass(group.platform)} reveal-on-scroll`;
-        card.innerHTML = `
-            <div class="card-bar"></div>
-            <div class="card-header">
-                <i class="fa-brands ${getPlatformIcon(group.platform)} platform-icon"></i>
-                <div class="group-name">${group.name}</div>
+    <nav class="glass-header">
+        <div class="nav-left">
+            <div class="hamburger" onclick="toggleMenu()">
+                <i class="fa-solid fa-bars"></i>
             </div>
-            <div class="card-meta">
-                <span><i class="fa-solid fa-layer-group"></i> ${group.category}</span>
-                <span><i class="fa-solid fa-location-dot"></i> ${group.city}</span>
+            <div class="logo">GroupNate</div>
+        </div>
+        <div class="nav-right">
+            <div class="icon-btn" onclick="toggleSearch()" title="Search">
+                <i class="fa-solid fa-search"></i>
             </div>
-            <div class="card-desc">${group.description}</div>
-            <div class="card-footer">
-                <button class="join-btn" onclick="showPreview(${group.id})">Join ${term}</button>
-                <div class="poster-info">
-                    <div><i class="fa-solid fa-user"></i> ${group.poster}</div>
+            <div class="icon-btn" onclick="toggleFilters()" title="Filters">
+                <i class="fa-solid fa-sliders"></i>
+            </div>
+        </div>
+    </nav>
+
+    <div class="side-menu glass-panel" id="sideMenu">
+        <div class="close-btn" onclick="toggleMenu()">&times;</div>
+        <ul>
+            <li><a href="dashboard.html"><i class="fa-solid fa-user"></i> Login / Sign Up</a></li>
+            <li><a href="#"><i class="fa-solid fa-shield-halved"></i> Privacy Policy</a></li>
+            <li><a href="#"><i class="fa-solid fa-scale-balanced"></i> Legal Policy</a></li>
+            <li><a href="#"><i class="fa-solid fa-circle-info"></i> About Us</a></li>
+        </ul>
+    </div>
+
+    <section id="controls-area">
+        <div class="control-panel glass-panel hidden" id="searchContainer">
+            <input type="text" placeholder="Search for groups...">
+        </div>
+
+        <div class="control-panel glass-panel hidden" id="filterContainer">
+            <div class="filter-container">
+                
+                <div class="filter-group">
+                    <label>Platform</label>
+                    <div class="platform-icons">
+                        <i class="fa-brands fa-discord" data-platform="discord" title="Discord"></i>
+                        <i class="fa-brands fa-telegram" data-platform="telegram" title="Telegram"></i>
+                        <i class="fa-brands fa-whatsapp" data-platform="whatsapp" title="WhatsApp"></i>
+                        <i class="fa-brands fa-instagram" data-platform="instagram" title="Instagram"></i>
+                        <i class="fa-brands fa-facebook" data-platform="facebook" title="Facebook"></i>
+                        <i class="fa-brands fa-reddit" data-platform="reddit" title="Reddit"></i>
+                    </div>
                 </div>
-            </div>`;
-        fragment.appendChild(card);
 
-        // Inject Google AdSense block every 4 items
-        counter++;
-        if(counter % 4 === 0) {
-            const adCard = document.createElement('div');
-            adCard.className = 'ad-card reveal-on-scroll';
-            adCard.innerHTML = `
-                <span class="ad-label" style="position: absolute; top: 10px; left: 10px; font-size: 0.8rem; color: #ccc;">Advertisement</span>
-                <ins class="adsbygoogle"
-                     style="display:block; width: 100%; height: 100%;"
-                     data-ad-client="ca-pub-XXXXXXXXXXXXXXXX" 
-                     data-ad-slot="YYYYYYYYYY"
-                     data-ad-format="auto"
-                     data-full-width-responsive="true"></ins>
-            `;
-            fragment.appendChild(adCard);
-        }
-    });
+                <div class="filter-group" id="typeFilterGroup">
+                    <label>Community Type</label>
+                    <div class="type-toggle">
+                        <button class="type-btn active" data-type="">
+                            <i class="fa-solid fa-layer-group"></i> All
+                        </button>
+                        <button class="type-btn" data-type="Group">
+                            <i class="fa-solid fa-users"></i> Groups
+                        </button>
+                        <button class="type-btn" data-type="Channel">
+                            <i class="fa-solid fa-bullhorn"></i> Channels
+                        </button>
+                        <button class="type-btn" data-type="Community">
+                            <i class="fa-brands fa-reddit-alien"></i> Communities
+                        </button>
+                    </div>
+                </div>
 
-    groupGrid.appendChild(fragment);
-    document.querySelectorAll('.reveal-on-scroll').forEach(el => cardObserver.observe(el));
+                <div class="filter-row">
+                    <select id="categorySelect">
+                        <option value="">Select Category</option>
+                    </select>
+                    <select id="countrySelect">
+                        <option value="">Select Country</option>
+                    </select>
+                    <select id="citySelect">
+                        <option value="">Select City</option>
+                    </select>
+                </div>
+                
+                <button class="apply-btn full-width" style="margin-top: 15px;" onclick="applyFilters()">Apply Filters</button>
+            </div>
+        </div>
+    </section>
 
-    // Tell Google AdSense to fill the empty ad slots we just rendered
-    const adElements = document.querySelectorAll('.adsbygoogle:empty');
-    adElements.forEach(() => {
-        try {
-            (adsbygoogle = window.adsbygoogle || []).push({});
-        } catch (e) {
-            console.error("AdSense error:", e);
-        }
-    });
-}
+    <main class="grid-container" id="groupGrid"></main>
 
-// --- 9. UI Utilities ---
-function toggleSearch() {
-    if(searchContainer.classList.contains('hidden')) {
-        searchContainer.classList.remove('hidden');
-        filterContainer.classList.add('hidden');
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-        setTimeout(() => searchInput.focus(), 400); 
-    } else { searchContainer.classList.add('hidden'); }
-}
+    <footer class="glass-footer">
+        <button class="nav-btn"><i class="fa-solid fa-backward-step"></i> First</button>
+        <button class="nav-btn"><i class="fa-solid fa-chevron-left"></i> Prev</button>
+        <span class="page-info">Page 1 of --</span>
+        <button class="nav-btn">Next <i class="fa-solid fa-chevron-right"></i></button>
+    </footer>
 
-function toggleFilters() {
-    if(filterContainer.classList.contains('hidden')) {
-        filterContainer.classList.remove('hidden');
-        searchContainer.classList.add('hidden');
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    } else { filterContainer.classList.add('hidden'); }
-}
+    <div id="previewOverlay" class="overlay hidden">
+        <div class="preview-modal">
+            
+            <div class="preview-header">
+                <div class="preview-title-row">
+                    <div id="pIcon"></div>
+                    <div>
+                        <h2 id="pName" style="font-size: 1.3rem;">Community Name</h2>
+                        <span id="pPlatform" class="platform-badge">PLATFORM</span>
+                    </div>
+                </div>
+                <div class="close-modal" onclick="closePreview()">&times;</div>
+            </div>
+            
+            <div class="preview-scroll">
+                <div class="preview-section">
+                    <h3><i class="fa-solid fa-circle-info"></i> About this Community</h3>
+                    <p id="pDesc" class="preview-description">Description goes here.</p>
+                </div>
 
-function toggleMenu() { sideMenu.classList.toggle('active'); }
+                <div class="preview-section">
+                    <h3><i class="fa-solid fa-shield-halved"></i> GroupNate Safety Rules</h3>
+                    <ul class="rules-list">
+                        <li><i class="fa-solid fa-circle-check"></i> Do not share personal financial information.</li>
+                        <li><i class="fa-solid fa-circle-check"></i> Be respectful to all community members.</li>
+                        <li><i class="fa-solid fa-circle-check"></i> Report spam or scam links immediately.</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="preview-actions">
+                <button class="nav-btn" onclick="closePreview()">Cancel</button>
+                <button class="join-btn full-width" style="margin-top: 0;">Agree & Join</button>
+            </div>
+            
+        </div>
+    </div>
 
-// --- 10. Preview Modal Logic ---
-function getPlatformColor(platform) {
-    const colors = { facebook: '#1877F2', whatsapp: '#25D366', reddit: '#FF4500', discord: '#5865F2', telegram: '#0088cc', instagram: '#E1306C' };
-    return colors[platform] || '#e94560';
-}
-
-function showPreview(id) {
-    const group = allGroups.find(g => g.id === id);
-    if (!group) return;
-
-    const term = getTerminology(group.platform);
-
-    document.getElementById('pName').textContent = group.name;
-    const badge = document.getElementById('pPlatform');
-    badge.textContent = group.platform.toUpperCase();
-    badge.style.backgroundColor = getPlatformColor(group.platform) + '33';
-    
-    document.getElementById('pIcon').innerHTML = `<i class="fa-brands ${getPlatformIcon(group.platform)}" style="font-size:3rem;color:${getPlatformColor(group.platform)}"></i>`;
-    document.getElementById('pDesc').textContent = group.description;
-    
-    // Dynamically update the join button inside the modal
-    const modalJoinBtn = document.querySelector('.preview-actions .join-btn.full-width');
-    if (modalJoinBtn) {
-        modalJoinBtn.textContent = `Agree & Join ${term}`;
-        modalJoinBtn.onclick = () => alert(`Redirecting you to the ${group.platform} ${term.toLowerCase()}...`);
-    }
-
-    document.getElementById('previewOverlay').classList.remove('hidden');
-}
-
-function closePreview() {
-    document.getElementById('previewOverlay').classList.add('hidden');
-}
-
-init();
+    <script src="scripts/main.js"></script>
+</body>
+</html>
